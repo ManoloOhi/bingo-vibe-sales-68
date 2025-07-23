@@ -7,12 +7,12 @@ import { RetirarCartelasForm } from '@/components/forms/RetirarCartelasForm';
 import { VenderCartelasForm } from '@/components/forms/VenderCartelasForm';
 import { DevolverCartelasForm } from '@/components/forms/DevolverCartelasForm';
 import { PageLayout } from '@/components/Layout/PageLayout';
-import { PedidoService } from '@/services/mockPedidoService';
-import { VendedorService } from '@/services/mockVendedorService';
-import { BingoService } from '@/services/mockBingoService';
-import type { Pedido } from '@/services/mockPedidoService';
-import type { Vendedor } from '@/services/mockVendedorService';
-import type { Bingo } from '@/services/mockBingoService';
+import { PedidoService } from '@/services/pedidoService';
+import { VendedorService } from '@/services/vendedorService';
+import { BingoService } from '@/services/bingoService';
+import type { Pedido } from '@/db/schema';
+import type { Vendedor } from '@/db/schema';
+import type { Bingo } from '@/db/schema';
 
 export default function Pedidos() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);

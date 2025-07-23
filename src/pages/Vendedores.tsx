@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Phone, Mail, Package, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { VendedorService } from '@/services/mockVendedorService';
-import { PedidoService } from '@/services/mockPedidoService';
+import { VendedorService } from '@/services/vendedorService';
+import { PedidoService } from '@/services/pedidoService';
 import { CreateVendedorForm } from '@/components/forms/CreateVendedorForm';
 import { EditVendedorForm } from '@/components/forms/EditVendedorForm';
-import type { Vendedor } from '@/services/mockVendedorService';
+import type { Vendedor } from '@/db/schema';
 
 export default function Vendedores() {
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);

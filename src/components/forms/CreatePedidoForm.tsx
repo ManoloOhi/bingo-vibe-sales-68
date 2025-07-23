@@ -5,13 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
-import { PedidoService } from '@/services/mockPedidoService';
-import { VendedorService } from '@/services/mockVendedorService';
-import { BingoService } from '@/services/mockBingoService';
+import { PedidoService } from '@/services/pedidoService';
+import { VendedorService } from '@/services/vendedorService';
+import { BingoService } from '@/services/bingoService';
 import { useToast } from '@/hooks/use-toast';
-import type { NewPedido } from '@/services/mockPedidoService';
-import type { Vendedor } from '@/services/mockVendedorService';
-import type { Bingo } from '@/services/mockBingoService';
+import type { NewPedido } from '@/db/schema';
+import type { Vendedor } from '@/db/schema';
+import type { Bingo } from '@/db/schema';
 
 interface CreatePedidoFormProps {
   onPedidoCreated?: () => void;

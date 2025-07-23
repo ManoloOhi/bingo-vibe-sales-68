@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
-import { VendedorService } from '@/services/mockVendedorService';
+import { VendedorService } from '@/services/vendedorService';
 import { useToast } from '@/hooks/use-toast';
-import type { NewVendedor } from '@/services/mockVendedorService';
+import { getDefaultUserId } from '@/services/userInit';
+import type { NewVendedor } from '@/db/schema';
 
 interface CreateVendedorFormProps {
   onVendedorCreated?: () => void;
@@ -28,7 +29,7 @@ export function CreateVendedorForm({ onVendedorCreated }: CreateVendedorFormProp
 
     try {
       const vendedorData: Omit<NewVendedor, 'id' | 'createdAt' | 'updatedAt'> = {
-        userId: 'default-user',
+        userId: getDefaultUserId(),
         nome: formData.nome,
         email: formData.email,
         whatsapp: formData.whatsapp,

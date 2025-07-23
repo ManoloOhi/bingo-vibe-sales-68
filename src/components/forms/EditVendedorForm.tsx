@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Edit } from 'lucide-react';
-import { VendedorService } from '@/services/mockVendedorService';
+import { VendedorService } from '@/services/vendedorService';
 import { useToast } from '@/hooks/use-toast';
-import type { Vendedor } from '@/services/mockVendedorService';
+import type { Vendedor } from '@/db/schema';
 
 interface EditVendedorFormProps {
   vendedor: Vendedor;

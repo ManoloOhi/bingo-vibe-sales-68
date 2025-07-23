@@ -2,9 +2,9 @@ import { PageLayout } from '@/components/Layout/PageLayout';
 import { Card } from '@/components/ui/card';
 import { TrendingUp, DollarSign, Package, Users, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { VendedorService } from '@/services/mockVendedorService';
-import { PedidoService } from '@/services/mockPedidoService';
-import { BingoService } from '@/services/mockBingoService';
+import { VendedorService } from '@/services/vendedorService';
+import { PedidoService } from '@/services/pedidoService';
+import { BingoService } from '@/services/bingoService';
 
 export default function Relatorios() {
   const [loading, setLoading] = useState(true);

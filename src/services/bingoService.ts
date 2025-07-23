@@ -50,13 +50,60 @@ export class BingoService {
     const bingo = await this.findById(bingoId);
     if (!bingo) throw new Error('Bingo não encontrado');
 
-    // TODO: Implementar lógica para calcular cartelas disponíveis
-    // baseado nas cartelas retiradas e vendidas dos pedidos
+    const { PedidoService } = await import('./pedidoService');
+    const pedidos = await PedidoService.findByBingo(bingoId);
+    
+    // Todas as cartelas do range
     const todasCartelas = Array.from(
       { length: bingo.quantidadeCartelas }, 
       (_, i) => bingo.rangeInicio + i
     );
+    
+    // Cartelas já retiradas
+    const cartelasRetiradas = pedidos.flatMap(p => p.cartelasRetiradas);
+    
+    // Cartelas disponíveis = todas - retiradas
+    return todasCartelas.filter(c => !cartelasRetiradas.includes(c));
+  }
 
-    return todasCartelas;
+  static async getCartelasRetiradas(bingoId: string): Promise<number[]> {
+    const { PedidoService } = await import('./pedidoService');
+    const pedidos = await PedidoService.findByBingo(bingoId);
+    const cartelas = pedidos.flatMap(p => p.cartelasRetiradas);
+    return [...new Set(cartelas)].sort((a, b) => a - b);
+  }
+
+  static async getCartelasVendidas(bingoId: string): Promise<number[]> {
+    const { PedidoService } = await import('./pedidoService');
+    const pedidos = await PedidoService.findByBingo(bingoId);
+    const cartelas = pedidos.flatMap(p => p.cartelasVendidas);
+    return [...new Set(cartelas)].sort((a, b) => a - b);
+  }
+
+  static async getRelatorioCartelas(bingoId: string) {
+    const bingo = await this.findById(bingoId);
+    if (!bingo) throw new Error('Bingo não encontrado');
+
+    const [disponiveis, retiradas, vendidas] = await Promise.all([
+      this.getCartelasDisponiveis(bingoId),
+      this.getCartelasRetiradas(bingoId),
+      this.getCartelasVendidas(bingoId)
+    ]);
+
+    const { PedidoService } = await import('./pedidoService');
+    const pedidos = await PedidoService.findByBingo(bingoId);
+    const devolvidas = pedidos.flatMap(p => p.cartelasDevolvidas);
+
+    return {
+      total: bingo.quantidadeCartelas,
+      disponiveis: disponiveis.length,
+      retiradas: retiradas.length,
+      vendidas: vendidas.length,
+      devolvidas: devolvidas.length,
+      cartelasDisponiveis: disponiveis,
+      cartelasRetiradas: retiradas,
+      cartelasVendidas: vendidas,
+      cartelasDevolvidas: [...new Set(devolvidas)].sort((a, b) => a - b)
+    };
   }
 }

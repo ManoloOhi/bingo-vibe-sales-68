@@ -132,6 +132,15 @@ export class PedidoService {
     }
   }
 
+  static async verificarDisponibilidadeCartelas(bingoId: string, cartelas: number[]): Promise<boolean> {
+    try {
+      await this.verificarDuplicidadeCartelas(bingoId, cartelas);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   private static async registrarLogCartelas(
     bingoId: string, 
     pedidoId: string, 
@@ -159,5 +168,26 @@ export class PedidoService {
 
   static async list(): Promise<Pedido[]> {
     return await db.select().from(pedidos);
+  }
+
+  static async getCartelasPorVendedor(vendedorId: string, bingoId?: string) {
+    let pedidosVendedor = await this.findByVendedor(vendedorId);
+    
+    if (bingoId) {
+      pedidosVendedor = pedidosVendedor.filter(p => p.bingoId === bingoId);
+    }
+
+    return pedidosVendedor.reduce((acc, pedido) => {
+      acc.retiradas += pedido.cartelasRetiradas.length;
+      acc.vendidas += pedido.cartelasVendidas.length;
+      acc.devolvidas += pedido.cartelasDevolvidas.length;
+      acc.pendentes += pedido.cartelasPendentes.length;
+      return acc;
+    }, {
+      retiradas: 0,
+      vendidas: 0,
+      devolvidas: 0,
+      pendentes: 0
+    });
   }
 }

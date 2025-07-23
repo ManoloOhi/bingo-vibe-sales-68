@@ -8,9 +8,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Plus } from 'lucide-react';
-import { BingoService } from '@/services/mockBingoService';
+import { BingoService } from '@/services/bingoService';
 import { useToast } from '@/hooks/use-toast';
-import type { NewBingo } from '@/services/mockBingoService';
+import { getDefaultUserId } from '@/services/userInit';
+import type { NewBingo } from '@/db/schema';
 
 interface CreateBingoFormProps {
   onBingoCreated?: () => void;
@@ -47,7 +48,7 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
       const quantidadeCartelas = rangeFim - rangeInicio + 1;
 
       const bingoData: Omit<NewBingo, 'id' | 'createdAt' | 'updatedAt'> = {
-        userId: 'default-user',
+        userId: getDefaultUserId(),
         nome: formData.nome,
         quantidadeCartelas,
         rangeInicio,
