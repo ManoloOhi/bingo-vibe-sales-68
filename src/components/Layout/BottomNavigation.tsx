@@ -7,7 +7,14 @@ const navItems = [
   { icon: Home, label: 'Início', href: '/', adminOnly: false },
   { icon: Package, label: 'Bingos', href: '/bingos', adminOnly: true },
   { icon: Users, label: 'Vendedores', href: '/vendedores', adminOnly: true },
-  { icon: ShoppingCart, label: 'Pedidos', href: '/pedidos', adminOnly: false },
+  { 
+    icon: ShoppingCart, 
+    label: 'Pedidos', 
+    href: '/pedidos', 
+    adminOnly: false,
+    // Mostrar "Meus Pedidos" para usuários comuns
+    getUserLabel: (isAdmin: boolean) => isAdmin ? 'Pedidos' : 'Meus Pedidos'
+  },
   { icon: BarChart3, label: 'Relatórios', href: '/relatorios', adminOnly: false },
 ];
 
@@ -20,8 +27,11 @@ export function BottomNavigation() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
       <div className="flex items-center justify-around px-2 py-2">
-        {visibleItems.map(({ icon: Icon, label, href, adminOnly }) => {
+        {visibleItems.map((item) => {
+          const { icon: Icon, label, href, adminOnly, getUserLabel } = item;
           const isActive = location.pathname === href;
+          const displayLabel = getUserLabel ? getUserLabel(isAdmin) : label;
+          
           return (
             <Link
               key={href}
@@ -38,7 +48,7 @@ export function BottomNavigation() {
               {adminOnly && (
                 <Shield size={8} className="absolute top-1 right-1 text-primary" />
               )}
-              <span className="text-xs font-medium truncate">{label}</span>
+              <span className="text-xs font-medium truncate">{displayLabel}</span>
             </Link>
           );
         })}

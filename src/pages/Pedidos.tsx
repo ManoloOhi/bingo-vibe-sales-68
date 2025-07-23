@@ -10,6 +10,7 @@ import { PageLayout } from '@/components/Layout/PageLayout';
 import { PedidoService } from '@/services/realPedidoService';
 import { VendedorService } from '@/services/realVendedorService';
 import { BingoService } from '@/services/realBingoService';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Pedido } from '@/services/realPedidoService';
 import type { Vendedor } from '@/services/realVendedorService';
 import type { Bingo } from '@/services/realBingoService';
@@ -19,6 +20,7 @@ export default function Pedidos() {
   const [vendedores, setVendedores] = useState<{ [key: string]: Vendedor }>({});
   const [bingos, setBingos] = useState<{ [key: string]: Bingo }>({});
   const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
 
   const loadPedidos = async () => {
     try {
@@ -73,16 +75,23 @@ export default function Pedidos() {
     );
   }
 
+  const pageTitle = isAdmin ? "Pedidos" : "Meus Pedidos";
+  const pageSubtitle = isAdmin ? "Controle de cartelas" : "Controle das minhas cartelas";
+
   return (
-    <PageLayout title="Pedidos" subtitle="Controle de cartelas">
+    <PageLayout title={pageTitle} subtitle={pageSubtitle}>
       <div className="space-y-4">
         <CreatePedidoForm onPedidoCreated={handlePedidoCreated} />
         
         <div className="space-y-3">
           {pedidos.length === 0 ? (
             <Card className="p-6 text-center">
-              <p className="text-muted-foreground">Nenhum pedido encontrado</p>
-              <p className="text-sm text-muted-foreground mt-1">Crie seu primeiro pedido para começar</p>
+              <p className="text-muted-foreground">
+                {isAdmin ? "Nenhum pedido encontrado" : "Você ainda não tem pedidos"}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {isAdmin ? "Crie o primeiro pedido para começar" : "Crie seu primeiro pedido para começar"}
+              </p>
             </Card>
           ) : (
             pedidos.map((pedido) => {
