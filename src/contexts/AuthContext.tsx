@@ -36,33 +36,84 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkAuth = async () => {
       console.log('🔍 AUTH: Verificando autenticação...');
+      console.log('🔍 AUTH: URL da API:', 'https://api-bingo.iaautomation-dev.com.br/api');
+      
       try {
         const token = localStorage.getItem('token');
         const savedUserId = localStorage.getItem('userId');
+        const userInfo = localStorage.getItem('userInfo');
+        
         console.log('🔍 AUTH: Token encontrado:', !!token);
+        console.log('🔍 AUTH: Token value:', token?.substring(0, 20) + '...');
         console.log('🔍 AUTH: UserId encontrado:', !!savedUserId);
+        console.log('🔍 AUTH: UserInfo encontrado:', !!userInfo);
         
         if (token && savedUserId) {
           console.log('🔍 AUTH: Chamando getCurrentUser...');
+          console.log('🔍 AUTH: Fazendo requisição para /auth/me');
+          
+          // Primeiro testar se a API está acessível
+          try {
+            console.log('🔍 AUTH: Testando conectividade com a API...');
+            await ApiService.healthCheck();
+            console.log('🔍 AUTH: API está acessível');
+          } catch (healthError: any) {
+            console.error('❌ AUTH: API não está acessível:', healthError);
+            console.error('❌ AUTH: Erro de conectividade:', healthError?.message);
+            // Se a API não está acessível, não limpar os dados - pode ser problema temporário
+            console.log('🔍 AUTH: Mantendo dados do usuário devido a problema de conectividade');
+            setIsLoading(false);
+            return;
+          }
+          
           try {
             const response = await ApiService.getCurrentUser();
-            console.log('🔍 AUTH: Resposta getCurrentUser:', response);
-            setUser(response.user);
-            console.log('🔍 AUTH: Usuário definido no contexto');
-          } catch (apiError) {
+            console.log('🔍 AUTH: Resposta getCurrentUser bem-sucedida:', response);
+            
+            if (response.user) {
+              setUser(response.user);
+              console.log('🔍 AUTH: Usuário definido no contexto:', response.user.email);
+            } else {
+              console.log('🔍 AUTH: Resposta não contém usuário');
+              throw new Error('Resposta da API não contém dados do usuário');
+            }
+          } catch (apiError: any) {
             console.error('❌ AUTH: Erro na API getCurrentUser:', apiError);
-            // Se o token está inválido ou expirado, limpar dados
-            localStorage.removeItem('token');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('userInfo');
-            setUser(null);
+            console.error('❌ AUTH: Tipo do erro:', typeof apiError);
+            console.error('❌ AUTH: Mensagem do erro:', apiError?.message);
+            console.error('❌ AUTH: Stack do erro:', apiError?.stack);
+            
+            // Só limpar dados se for erro de autenticação (401/403), não erro de rede
+            if (apiError?.message?.includes('401') || apiError?.message?.includes('403') || 
+                apiError?.message?.includes('Token') || apiError?.message?.includes('Unauthorized')) {
+              console.log('🔍 AUTH: Erro de autenticação - limpando dados do localStorage');
+              localStorage.removeItem('token');
+              localStorage.removeItem('userId');
+              localStorage.removeItem('userInfo');
+              setUser(null);
+            } else {
+              console.log('🔍 AUTH: Erro de rede - mantendo dados do usuário');
+              // Tentar usar dados salvos como fallback
+              if (userInfo) {
+                try {
+                  const savedUser = JSON.parse(userInfo);
+                  setUser(savedUser);
+                  console.log('🔍 AUTH: Usando dados salvos como fallback:', savedUser.email);
+                } catch (parseError) {
+                  console.error('❌ AUTH: Erro ao fazer parse dos dados salvos:', parseError);
+                  setUser(null);
+                }
+              }
+            }
           }
         } else {
-          console.log('🔍 AUTH: Token ou UserId não encontrados');
+          console.log('🔍 AUTH: Token ou UserId não encontrados, definindo user como null');
           setUser(null);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ AUTH: Erro geral na verificação:', error);
+        console.error('❌ AUTH: Tipo do erro geral:', typeof error);
+        console.error('❌ AUTH: Mensagem do erro geral:', error?.message);
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
         localStorage.removeItem('userInfo');
