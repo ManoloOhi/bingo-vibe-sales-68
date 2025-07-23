@@ -16,6 +16,7 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cartelasSelecionadas, setCartelasSelecionadas] = useState<number[]>([]);
+  const [ultimaCartelaSelecionada, setUltimaCartelaSelecionada] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Cartelas disponíveis para devolução = retiradas - vendidas - já devolvidas
@@ -23,12 +24,41 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
     !pedido.cartelasVendidas.includes(c) && !pedido.cartelasDevolvidas.includes(c)
   );
 
-  const toggleCartela = (cartela: number) => {
-    setCartelasSelecionadas(prev => 
-      prev.includes(cartela) 
-        ? prev.filter(c => c !== cartela)
-        : [...prev, cartela].sort((a, b) => a - b)
-    );
+  const getCartelasNoRange = (inicio: number, fim: number): number[] => {
+    const min = Math.min(inicio, fim);
+    const max = Math.max(inicio, fim);
+    return cartelasDisponiveis.filter(cartela => cartela >= min && cartela <= max);
+  };
+
+  const toggleCartela = (cartela: number, event?: React.MouseEvent) => {
+    const isCtrlPressed = event?.ctrlKey || event?.metaKey;
+    
+    if (isCtrlPressed && ultimaCartelaSelecionada !== null) {
+      // Seleção em range
+      const cartelasNoRange = getCartelasNoRange(ultimaCartelaSelecionada, cartela);
+      const cartelasSelecionadasNoRange = cartelasNoRange.filter(c => cartelasSelecionadas.includes(c));
+      const maioriaSelecionada = cartelasSelecionadasNoRange.length > cartelasNoRange.length / 2;
+      
+      setCartelasSelecionadas(prev => {
+        if (maioriaSelecionada) {
+          // Desselecierar todas no range
+          return prev.filter(c => !cartelasNoRange.includes(c));
+        } else {
+          // Selecionar todas no range
+          const novasSelecoes = cartelasNoRange.filter(c => !prev.includes(c));
+          return [...prev, ...novasSelecoes].sort((a, b) => a - b);
+        }
+      });
+    } else {
+      // Seleção individual
+      setCartelasSelecionadas(prev => 
+        prev.includes(cartela) 
+          ? prev.filter(c => c !== cartela)
+          : [...prev, cartela].sort((a, b) => a - b)
+      );
+    }
+    
+    setUltimaCartelaSelecionada(cartela);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,14 +125,17 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
           </div>
 
           <div className="space-y-2">
-            <div className="text-sm font-medium">Cartelas Não Vendidas</div>
+            <div className="text-sm font-medium">
+              Cartelas Não Vendidas 
+              <span className="text-xs text-muted-foreground ml-2">(Ctrl+click para seleção em range)</span>
+            </div>
             <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto border rounded p-3">
               {cartelasDisponiveis.map(cartela => (
                 <Badge
                   key={cartela}
                   variant={cartelasSelecionadas.includes(cartela) ? "destructive" : "outline"}
                   className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => toggleCartela(cartela)}
+                  onClick={(event) => toggleCartela(cartela, event)}
                 >
                   {cartela}
                 </Badge>
@@ -119,7 +152,7 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
                     key={cartela}
                     variant="destructive"
                     className="cursor-pointer"
-                    onClick={() => toggleCartela(cartela)}
+                    onClick={(event) => toggleCartela(cartela, event)}
                   >
                     {cartela} <Minus size={12} className="ml-1" />
                   </Badge>
