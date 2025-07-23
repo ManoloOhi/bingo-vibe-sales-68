@@ -50,7 +50,9 @@ export default function Relatorios() {
           const bingo = bingosMap[pedido.bingoId];
           if (bingo && bingo.valorCartela) {
             const valorCartela = parseFloat(bingo.valorCartela);
-            return total + (pedido.cartelasVendidas.length * valorCartela);
+            if (!isNaN(valorCartela) && valorCartela > 0) {
+              return total + (pedido.cartelasVendidas.length * valorCartela);
+            }
           }
           return total;
         }, 0);
@@ -60,7 +62,9 @@ export default function Relatorios() {
           const bingo = bingosMap[pedido.bingoId];
           if (bingo && bingo.valorCartela) {
             const valorCartela = parseFloat(bingo.valorCartela);
-            return total + (pedido.cartelasRetiradas.length * valorCartela);
+            if (!isNaN(valorCartela) && valorCartela > 0) {
+              return total + (pedido.cartelasRetiradas.length * valorCartela);
+            }
           }
           return total;
         }, 0);
@@ -137,13 +141,13 @@ export default function Relatorios() {
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
             <DollarSign size={24} className="text-success mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Total Recebido</p>
-            <p className="text-xl font-bold text-foreground">R$ {stats.totalRecebido.toFixed(2)}</p>
+            <p className="text-xl font-bold text-foreground">R$ {(stats.totalRecebido || 0).toFixed(2)}</p>
           </Card>
           
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
             <TrendingUp size={24} className="text-warning mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Valor Esperado</p>
-            <p className="text-xl font-bold text-foreground">R$ {stats.valorEsperado.toFixed(2)}</p>
+            <p className="text-xl font-bold text-foreground">R$ {(stats.valorEsperado || 0).toFixed(2)}</p>
           </Card>
           
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
