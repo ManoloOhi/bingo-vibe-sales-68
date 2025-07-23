@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { ApiService } from '@/services/apiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,16 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    console.log('🔄 LOGIN: Verificando se usuário já está logado...', { user, authLoading });
+    if (!authLoading && user) {
+      console.log('🔄 LOGIN: Usuário já logado, redirecionando para home...');
+      navigate('/', { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,15 +32,9 @@ export default function Login() {
     console.log('🔑 LOGIN: Iniciando processo de login...');
 
     try {
-      console.log('🔑 LOGIN: Chamando API de login...');
+      console.log('🔑 LOGIN: Chamando login via ApiService...');
       const response = await ApiService.login(email, senha);
       console.log('🔑 LOGIN: Resposta da API:', response);
-      
-      // Salvar token e dados do usuário no localStorage 
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('userId', response.user.id);
-      localStorage.setItem('userInfo', JSON.stringify(response.user));
-      console.log('🔑 LOGIN: Token e dados salvos no localStorage');
       
       toast({
         title: "Login realizado com sucesso!",
@@ -37,8 +42,8 @@ export default function Login() {
       });
       
       console.log('🔑 LOGIN: Redirecionando para página inicial...');
-      // Recarregar a página para que o AuthProvider carregue o usuário
-      window.location.href = '/';
+      // O navigate será acionado automaticamente pelo useEffect quando o usuário for definido
+      navigate('/', { replace: true });
     } catch (error: any) {
       console.error('❌ LOGIN: Erro no login:', error);
       toast({

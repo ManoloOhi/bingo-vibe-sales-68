@@ -15,7 +15,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, senha: string) => Promise<void>;
+  login: (email: string, senha: string) => Promise<User>;
   logout: () => void;
   isAdmin: boolean;
 }
@@ -66,12 +66,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (email: string, senha: string) => {
+    console.log('🔑 AUTH: Iniciando login no contexto...');
     try {
       const response = await ApiService.login(email, senha);
-      setUser(response.user);
+      console.log('🔑 AUTH: Login bem-sucedido:', response);
+      
       localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id);
+      localStorage.setItem('userInfo', JSON.stringify(response.user));
+      console.log('🔑 AUTH: Dados salvos no localStorage');
+      
+      // Atualizar o estado do usuário imediatamente
+      setUser(response.user);
+      console.log('🔑 AUTH: Usuário definido no contexto:', response.user);
+      
+      return response.user;
     } catch (error) {
+      console.error('❌ AUTH: Erro no login:', error);
       throw error;
     }
   };
