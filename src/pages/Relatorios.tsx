@@ -9,7 +9,8 @@ import { BingoService } from '@/services/realBingoService';
 export default function Relatorios() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    totalVendas: 0,
+    totalRecebido: 0,
+    valorEsperado: 0,
     cartelasVendidas: 0,
     vendedoresAtivos: 0,
     taxaConversao: 0
@@ -44,12 +45,22 @@ export default function Relatorios() {
           return acc;
         }, {} as Record<string, any>);
         
-        // Calcular total de vendas usando valores reais dos bingos
-        const totalVendas = pedidos.reduce((total, pedido) => {
+        // Calcular total recebido (cartelas vendidas x valor)
+        const totalRecebido = pedidos.reduce((total, pedido) => {
           const bingo = bingosMap[pedido.bingoId];
           if (bingo && bingo.valorCartela) {
             const valorCartela = parseFloat(bingo.valorCartela);
             return total + (pedido.cartelasVendidas.length * valorCartela);
+          }
+          return total;
+        }, 0);
+        
+        // Calcular valor esperado (cartelas retiradas x valor)
+        const valorEsperado = pedidos.reduce((total, pedido) => {
+          const bingo = bingosMap[pedido.bingoId];
+          if (bingo && bingo.valorCartela) {
+            const valorCartela = parseFloat(bingo.valorCartela);
+            return total + (pedido.cartelasRetiradas.length * valorCartela);
           }
           return total;
         }, 0);
@@ -81,7 +92,8 @@ export default function Relatorios() {
           .sort((a, b) => b.vendas - a.vendas);
 
         setStats({
-          totalVendas,
+          totalRecebido,
+          valorEsperado,
           cartelasVendidas: totalCartelasVendidas,
           vendedoresAtivos: vendedoresComPedidos.size,
           taxaConversao: Math.round(taxaConversao)
@@ -124,8 +136,14 @@ export default function Relatorios() {
         <div className="grid grid-cols-2 gap-3">
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
             <DollarSign size={24} className="text-success mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Total Vendas</p>
-            <p className="text-xl font-bold text-foreground">R$ {stats.totalVendas.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground">Total Recebido</p>
+            <p className="text-xl font-bold text-foreground">R$ {stats.totalRecebido.toFixed(2)}</p>
+          </Card>
+          
+          <Card className="p-4 text-center shadow-[var(--shadow-card)]">
+            <TrendingUp size={24} className="text-warning mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Valor Esperado</p>
+            <p className="text-xl font-bold text-foreground">R$ {stats.valorEsperado.toFixed(2)}</p>
           </Card>
           
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
@@ -135,15 +153,9 @@ export default function Relatorios() {
           </Card>
           
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
-            <Users size={24} className="text-warning mx-auto mb-2" />
+            <Users size={24} className="text-accent mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Vendedores Ativos</p>
             <p className="text-xl font-bold text-foreground">{stats.vendedoresAtivos}</p>
-          </Card>
-          
-          <Card className="p-4 text-center shadow-[var(--shadow-card)]">
-            <TrendingUp size={24} className="text-success mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Taxa Conversão</p>
-            <p className="text-xl font-bold text-foreground">{stats.taxaConversao}%</p>
           </Card>
         </div>
         
