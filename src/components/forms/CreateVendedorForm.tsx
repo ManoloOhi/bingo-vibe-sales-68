@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
-import { VendedorService } from '@/services/vendedorService';
+import { VendedorService } from '@/services/realVendedorService';
 import { useToast } from '@/hooks/use-toast';
 import { getDefaultUserId } from '@/services/userInit';
-import type { NewVendedor } from '@/db/schema';
+import type { NewVendedor } from '@/services/realVendedorService';
 
 interface CreateVendedorFormProps {
   onVendedorCreated?: () => void;
