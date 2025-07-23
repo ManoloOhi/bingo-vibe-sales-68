@@ -59,36 +59,46 @@ router.post('/logout', (req, res) => {
 
 // Verificar usuário atual (para manter sessão)
 router.get('/me', async (req, res) => {
+  console.log('🔒 AUTH /me: Verificando usuário atual...');
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    console.log('🔒 AUTH /me: Token recebido:', !!token);
     
     if (!token) {
+      console.log('❌ AUTH /me: Token não fornecido');
       return res.status(401).json({ error: 'Token não fornecido' });
     }
 
     // Verificar e decodificar o token
+    console.log('🔒 AUTH /me: Verificando token JWT...');
     const decoded = jwt.verify(token, JWT_SECRET) as any;
+    console.log('🔒 AUTH /me: Token decodificado:', { userId: decoded.userId, email: decoded.email });
     
     const [user] = await db
       .select()
       .from(users)
       .where(eq(users.id, decoded.userId));
 
+    console.log('🔒 AUTH /me: Usuário encontrado no banco:', !!user);
     if (!user || !user.ativo) {
+      console.log('❌ AUTH /me: Usuário não encontrado ou inativo');
       return res.status(401).json({ error: 'Usuário não encontrado' });
     }
 
     const { senha: _, ...userWithoutPassword } = user;
+    console.log('✅ AUTH /me: Usuário autenticado com sucesso');
     res.json({ user: userWithoutPassword });
-  } catch (error) {
+  } catch (error: any) {
     if (error.name === 'JsonWebTokenError') {
+      console.log('❌ AUTH /me: Token inválido');
       return res.status(401).json({ error: 'Token inválido' });
     }
     if (error.name === 'TokenExpiredError') {
+      console.log('❌ AUTH /me: Token expirado');
       return res.status(401).json({ error: 'Token expirado' });
     }
-    console.error('Erro ao verificar usuário:', error);
+    console.error('❌ AUTH /me: Erro ao verificar usuário:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

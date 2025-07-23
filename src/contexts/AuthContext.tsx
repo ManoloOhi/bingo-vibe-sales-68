@@ -35,20 +35,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Verificar se há usuário logado no localStorage
   useEffect(() => {
     const checkAuth = async () => {
+      console.log('🔍 AUTH: Verificando autenticação...');
       try {
         const token = localStorage.getItem('token');
         const savedUserId = localStorage.getItem('userId');
+        console.log('🔍 AUTH: Token encontrado:', !!token);
+        console.log('🔍 AUTH: UserId encontrado:', !!savedUserId);
         
         if (token && savedUserId) {
+          console.log('🔍 AUTH: Chamando getCurrentUser...');
           const response = await ApiService.getCurrentUser();
+          console.log('🔍 AUTH: Resposta getCurrentUser:', response);
           setUser(response.user);
+          console.log('🔍 AUTH: Usuário definido no contexto');
+        } else {
+          console.log('🔍 AUTH: Token ou UserId não encontrados');
         }
       } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
+        console.error('❌ AUTH: Erro ao verificar autenticação:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
         localStorage.removeItem('userInfo');
       } finally {
+        console.log('🔍 AUTH: Finalizando verificação, isLoading = false');
         setIsLoading(false);
       }
     };

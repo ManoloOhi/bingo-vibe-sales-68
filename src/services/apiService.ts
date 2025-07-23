@@ -13,6 +13,8 @@ class ApiService {
   private static async request(endpoint: string, options: RequestInit = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
     const token = localStorage.getItem('token');
+    console.log(`🌐 API [${endpoint}]: Fazendo requisição...`);
+    console.log(`🌐 API [${endpoint}]: Token disponível:`, !!token);
     
     const config: RequestInit = {
       headers: {
@@ -25,9 +27,10 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
+      console.log(`🌐 API [${endpoint}]: Status da resposta:`, response.status);
       return await this.handleResponse(response);
     } catch (error) {
-      console.error(`API Error [${endpoint}]:`, error);
+      console.error(`❌ API Error [${endpoint}]:`, error);
       throw error;
     }
   }
