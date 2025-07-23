@@ -23,12 +23,24 @@ const STORAGE_KEY = 'vendedores';
 
 export class VendedorService {
   private static getVendedores(): Vendedor[] {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const result = stored ? JSON.parse(stored) : [];
+      console.log('VendedorService.getVendedores:', result.length, 'vendedores encontrados');
+      return result;
+    } catch (error) {
+      console.error('Erro ao acessar localStorage para vendedores:', error);
+      return [];
+    }
   }
 
   private static saveVendedores(vendedores: Vendedor[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(vendedores));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(vendedores));
+      console.log('VendedorService.saveVendedores: salvos', vendedores.length, 'vendedores');
+    } catch (error) {
+      console.error('Erro ao salvar vendedores no localStorage:', error);
+    }
   }
 
   static async create(vendedorData: Omit<NewVendedor, 'id' | 'createdAt' | 'updatedAt'>): Promise<Vendedor> {

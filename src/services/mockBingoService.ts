@@ -29,12 +29,24 @@ const STORAGE_KEY = 'bingos';
 
 export class BingoService {
   private static getBingos(): Bingo[] {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const result = stored ? JSON.parse(stored) : [];
+      console.log('BingoService.getBingos:', result.length, 'bingos encontrados');
+      return result;
+    } catch (error) {
+      console.error('Erro ao acessar localStorage para bingos:', error);
+      return [];
+    }
   }
 
   private static saveBingos(bingos: Bingo[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(bingos));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(bingos));
+      console.log('BingoService.saveBingos: salvos', bingos.length, 'bingos');
+    } catch (error) {
+      console.error('Erro ao salvar bingos no localStorage:', error);
+    }
   }
 
   static async create(bingoData: Omit<NewBingo, 'id' | 'createdAt' | 'updatedAt'>): Promise<Bingo> {

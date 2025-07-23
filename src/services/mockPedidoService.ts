@@ -25,12 +25,24 @@ const STORAGE_KEY = 'pedidos';
 
 export class PedidoService {
   private static getPedidos(): Pedido[] {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const result = stored ? JSON.parse(stored) : [];
+      console.log('PedidoService.getPedidos:', result.length, 'pedidos encontrados');
+      return result;
+    } catch (error) {
+      console.error('Erro ao acessar localStorage para pedidos:', error);
+      return [];
+    }
   }
 
   private static savePedidos(pedidos: Pedido[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos));
+      console.log('PedidoService.savePedidos: salvos', pedidos.length, 'pedidos');
+    } catch (error) {
+      console.error('Erro ao salvar pedidos no localStorage:', error);
+    }
   }
 
   static async create(pedidoData: Omit<NewPedido, 'id' | 'createdAt' | 'updatedAt'>): Promise<Pedido> {

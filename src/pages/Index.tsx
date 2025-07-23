@@ -22,24 +22,36 @@ const Index = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
+        console.log('Index: Iniciando carregamento de estatísticas...');
+        
         // Inicializar dados de exemplo se necessário
         await initializeMockData();
 
+        console.log('Index: Carregando dados dos serviços...');
         const [bingos, vendedores, pedidos] = await Promise.all([
           BingoService.list(),
           VendedorService.list(),
           PedidoService.list()
         ]);
 
+        console.log('Index: Dados carregados:', {
+          bingos: bingos.length,
+          vendedores: vendedores.length,
+          pedidos: pedidos.length
+        });
+
         const pedidosPendentes = pedidos.filter(p => p.status === 'aberto').length;
         const cartelasVendidas = pedidos.reduce((total, p) => total + p.cartelasVendidas.length, 0);
 
-        setStats({
+        const newStats = {
           bingosAtivos: bingos.length,
           vendedores: vendedores.length,
           pedidosPendentes,
           cartelasVendidas
-        });
+        };
+
+        console.log('Index: Stats calculadas:', newStats);
+        setStats(newStats);
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
       } finally {
