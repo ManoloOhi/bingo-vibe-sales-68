@@ -20,51 +20,39 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={
-            <AuthWrapper>
-              <Login />
-            </AuthWrapper>
-          } />
-          <Route path="/" element={
-            <AuthWrapper>
+      <AuthWrapper>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={
               <ProtectedRoute>
                 <Index />
               </ProtectedRoute>
-            </AuthWrapper>
-          } />
-          <Route path="/bingos" element={
-            <AuthWrapper>
+            } />
+            <Route path="/bingos" element={
               <ProtectedRoute adminOnly>
                 <Bingos />
               </ProtectedRoute>
-            </AuthWrapper>
-          } />
-          <Route path="/vendedores" element={
-            <AuthWrapper>
+            } />
+            <Route path="/vendedores" element={
               <ProtectedRoute adminOnly>
                 <Vendedores />
               </ProtectedRoute>
-            </AuthWrapper>
-          } />
-          <Route path="/pedidos" element={
-            <AuthWrapper>
+            } />
+            <Route path="/pedidos" element={
               <ProtectedRoute>
                 <Pedidos />
               </ProtectedRoute>
-            </AuthWrapper>
-          } />
-          <Route path="/relatorios" element={
-            <AuthWrapper>
+            } />
+            <Route path="/relatorios" element={
               <ProtectedRoute>
                 <Relatorios />
               </ProtectedRoute>
-            </AuthWrapper>
-          } />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthWrapper>
     </TooltipProvider>
   </QueryClientProvider>
 );
