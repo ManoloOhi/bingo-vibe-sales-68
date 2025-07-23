@@ -15,7 +15,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, login } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -32,9 +32,9 @@ export default function Login() {
     console.log('🔑 LOGIN: Iniciando processo de login...');
 
     try {
-      console.log('🔑 LOGIN: Chamando login via ApiService...');
-      const response = await ApiService.login(email, senha);
-      console.log('🔑 LOGIN: Resposta da API:', response);
+      console.log('🔑 LOGIN: Chamando login via contexto...');
+      await login(email, senha);
+      console.log('🔑 LOGIN: Login realizado com sucesso!');
       
       toast({
         title: "Login realizado com sucesso!",
@@ -42,7 +42,6 @@ export default function Login() {
       });
       
       console.log('🔑 LOGIN: Redirecionando para página inicial...');
-      // O navigate será acionado automaticamente pelo useEffect quando o usuário for definido
       navigate('/', { replace: true });
     } catch (error: any) {
       console.error('❌ LOGIN: Erro no login:', error);
