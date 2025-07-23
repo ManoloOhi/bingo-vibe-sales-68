@@ -12,9 +12,12 @@ class ApiService {
 
   private static async request(endpoint: string, options: RequestInit = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
+    const token = localStorage.getItem('token');
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       ...options,
@@ -129,8 +132,8 @@ class ApiService {
     });
   }
 
-  static async getCurrentUser(userId: string) {
-    return this.request(`/auth/me?userId=${userId}`);
+  static async getCurrentUser() {
+    return this.request('/auth/me');
   }
 }
 

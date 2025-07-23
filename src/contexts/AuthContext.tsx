@@ -36,14 +36,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        const token = localStorage.getItem('token');
         const savedUserId = localStorage.getItem('userId');
-        if (savedUserId) {
-          const response = await ApiService.getCurrentUser(savedUserId);
+        
+        if (token && savedUserId) {
+          const response = await ApiService.getCurrentUser();
           setUser(response.user);
         }
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);
+        localStorage.removeItem('token');
         localStorage.removeItem('userId');
+        localStorage.removeItem('userInfo');
       } finally {
         setIsLoading(false);
       }
@@ -56,6 +60,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await ApiService.login(email, senha);
       setUser(response.user);
+      localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id);
     } catch (error) {
       throw error;
@@ -64,7 +69,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('token');
     localStorage.removeItem('userId');
+    localStorage.removeItem('userInfo');
   };
 
   return (

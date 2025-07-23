@@ -22,7 +22,8 @@ export default function Login() {
     try {
       const response = await ApiService.login(email, senha);
       
-      // Salvar dados do usuário no localStorage 
+      // Salvar token e dados do usuário no localStorage 
+      localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id);
       localStorage.setItem('userInfo', JSON.stringify(response.user));
       
