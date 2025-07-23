@@ -112,6 +112,26 @@ class ApiService {
       body: JSON.stringify(pedidoData),
     });
   }
+
+  // ========================================
+  // 🔐 AUTENTICAÇÃO
+  // ========================================
+  static async login(email: string, senha: string) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, senha })
+    });
+  }
+
+  static async logout() {
+    return this.request('/auth/logout', {
+      method: 'POST'
+    });
+  }
+
+  static async getCurrentUser(userId: string) {
+    return this.request(`/auth/me?userId=${userId}`);
+  }
 }
 
 export { ApiService };
