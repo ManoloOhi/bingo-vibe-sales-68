@@ -5,10 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Target, Users, TrendingUp, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { BingoService } from '@/services/bingoService';
-import { VendedorService } from '@/services/vendedorService';
-import { PedidoService } from '@/services/pedidoService';
-import { testConnection } from '@/db/connection';
+import { BingoService } from '@/services/mockBingoService';
+import { VendedorService } from '@/services/mockVendedorService';
+import { PedidoService } from '@/services/mockPedidoService';
+import { initializeMockData } from '@/services/initMockData';
 
 const Index = () => {
   const [stats, setStats] = useState({
@@ -22,8 +22,8 @@ const Index = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        console.log('Index: Testando conexão com banco...');
-        await testConnection();
+        // Inicializar dados de exemplo se necessário
+        await initializeMockData();
 
         console.log('Index: Carregando dados dos serviços...');
         const [bingos, vendedores, pedidos] = await Promise.all([
