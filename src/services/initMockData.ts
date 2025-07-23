@@ -1,6 +1,7 @@
 import { BingoService } from './mockBingoService';
 import { VendedorService } from './mockVendedorService';
 import { PedidoService } from './mockPedidoService';
+import { getDefaultUserId } from './userInit';
 
 export async function initializeMockData() {
   try {
@@ -20,9 +21,11 @@ export async function initializeMockData() {
 
     console.log('Criando dados iniciais...');
 
+    const userId = await getDefaultUserId();
+
     // Criar bingo de exemplo
     const bingo = await BingoService.create({
-      userId: 'default-user',
+      userId,
       nome: 'Bingo de São João 2024',
       quantidadeCartelas: 100,
       rangeInicio: 1,
@@ -34,7 +37,7 @@ export async function initializeMockData() {
 
     // Criar vendedores de exemplo
     const vendedor1 = await VendedorService.create({
-      userId: 'default-user',
+      userId,
       nome: 'João Silva',
       email: 'joao@exemplo.com',
       whatsapp: '(11) 99999-1111',
@@ -42,7 +45,7 @@ export async function initializeMockData() {
     });
 
     const vendedor2 = await VendedorService.create({
-      userId: 'default-user',
+      userId,
       nome: 'Maria Santos',
       email: 'maria@exemplo.com',
       whatsapp: '(11) 99999-2222',

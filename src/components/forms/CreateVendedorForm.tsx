@@ -28,8 +28,9 @@ export function CreateVendedorForm({ onVendedorCreated }: CreateVendedorFormProp
     setLoading(true);
 
     try {
+      const userId = await getDefaultUserId();
       const vendedorData: Omit<NewVendedor, 'id' | 'createdAt' | 'updatedAt'> = {
-        userId: getDefaultUserId(),
+        userId,
         nome: formData.nome,
         email: formData.email,
         whatsapp: formData.whatsapp,

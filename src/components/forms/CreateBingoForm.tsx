@@ -10,6 +10,7 @@ import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Plus } from 'lucide-react';
 import { BingoService } from '@/services/realBingoService';
 import { useToast } from '@/hooks/use-toast';
+import { getDefaultUserId } from '@/services/userInit';
 import type { NewBingo } from '@/services/realBingoService';
 
 interface CreateBingoFormProps {
@@ -46,8 +47,9 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
       const rangeFim = parseInt(formData.rangeFim);
       const quantidadeCartelas = rangeFim - rangeInicio + 1;
 
+      const userId = await getDefaultUserId();
       const bingoData: Omit<NewBingo, 'id' | 'createdAt' | 'updatedAt'> = {
-        userId: 'admin-default',
+        userId,
         nome: formData.nome,
         quantidadeCartelas,
         rangeInicio,

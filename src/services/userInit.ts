@@ -27,7 +27,8 @@ export async function getOrCreateDefaultUser() {
   }
 }
 
-export function getDefaultUserId(): string {
-  // Por enquanto, usar um ID fixo. Em produção, seria obtido da autenticação
-  return 'default-admin-user';
+export async function getDefaultUserId(): Promise<string> {
+  // Obter o ID do usuário padrão do banco de dados
+  const user = await getOrCreateDefaultUser();
+  return user.id;
 }
