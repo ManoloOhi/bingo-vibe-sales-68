@@ -13,7 +13,7 @@ export function PageLayout({ title, subtitle, children }: PageLayoutProps) {
     <div className="min-h-screen bg-background">
       <Header title={title} subtitle={subtitle} />
       
-      <main className="pt-16 pb-20 px-4">
+      <main className="pt-20 pb-20 px-4">
         <div className="max-w-md mx-auto">
           {children}
         </div>
