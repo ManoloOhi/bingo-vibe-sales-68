@@ -3,9 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RotateCcw, Minus } from 'lucide-react';
-import { PedidoService } from '@/services/pedidoService';
+import { PedidoService } from '@/services/realPedidoService';
 import { useToast } from '@/hooks/use-toast';
-import type { Pedido } from '@/db/schema';
+import type { Pedido } from '@/services/realPedidoService';
 
 interface DevolverCartelasFormProps {
   pedido: Pedido;

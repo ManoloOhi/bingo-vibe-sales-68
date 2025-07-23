@@ -1,5 +1,6 @@
 import { Bell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ApiStatus } from '@/components/ui/api-status';
 
 interface HeaderProps {
   title: string;
@@ -13,7 +14,10 @@ export function Header({ title, subtitle }: HeaderProps) {
         <div className="flex-1">
           <h1 className="text-lg font-semibold text-foreground">{title}</h1>
           {subtitle && (
-            <p className="text-sm text-muted-foreground">{subtitle}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">{subtitle}</p>
+              <ApiStatus />
+            </div>
           )}
         </div>
         

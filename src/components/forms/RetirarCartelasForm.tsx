@@ -6,10 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Package, Minus } from 'lucide-react';
-import { PedidoService } from '@/services/pedidoService';
-import { BingoService } from '@/services/bingoService';
+import { PedidoService } from '@/services/realPedidoService';
+import { BingoService } from '@/services/realBingoService';
 import { useToast } from '@/hooks/use-toast';
-import type { Pedido } from '@/db/schema';
+import type { Pedido } from '@/services/realPedidoService';
 
 interface RetirarCartelasFormProps {
   pedido: Pedido;
