@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { BingoService } from '@/services/mockBingoService';
 import { PedidoService } from '@/services/mockPedidoService';
 import { CreateBingoForm } from '@/components/forms/CreateBingoForm';
+import { EditBingoForm } from '@/components/forms/EditBingoForm';
 import type { Bingo } from '@/services/mockBingoService';
 
 export default function Bingos() {
@@ -35,6 +36,10 @@ export default function Bingos() {
   };
 
   const handleBingoCreated = () => {
+    loadBingos();
+  };
+
+  const handleBingoUpdated = () => {
     loadBingos();
   };
 
@@ -120,6 +125,10 @@ export default function Bingos() {
                       <span className="text-xs text-muted-foreground">Restam</span>
                       <span className="font-semibold">{restantes}</span>
                     </div>
+                  </div>
+                  
+                  <div className="pt-3 border-t border-border mt-3">
+                    <EditBingoForm bingo={bingo} onBingoUpdated={handleBingoUpdated} />
                   </div>
                 </Card>
               );

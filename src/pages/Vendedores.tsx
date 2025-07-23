@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { VendedorService } from '@/services/mockVendedorService';
 import { PedidoService } from '@/services/mockPedidoService';
 import { CreateVendedorForm } from '@/components/forms/CreateVendedorForm';
+import { EditVendedorForm } from '@/components/forms/EditVendedorForm';
 import type { Vendedor } from '@/services/mockVendedorService';
 
 export default function Vendedores() {
@@ -35,6 +36,10 @@ export default function Vendedores() {
   };
 
   const handleVendedorCreated = () => {
+    loadVendedores();
+  };
+
+  const handleVendedorUpdated = () => {
     loadVendedores();
   };
 
@@ -110,9 +115,7 @@ export default function Vendedores() {
                       <Package size={16} className="text-primary" />
                       <span className="text-sm font-medium">{pedidos} pedidos ativos</span>
                     </div>
-                    <Button variant="outline" size="sm">
-                      Ver Detalhes
-                    </Button>
+                    <EditVendedorForm vendedor={vendedor} onVendedorUpdated={handleVendedorUpdated} />
                   </div>
                 </Card>
               );
