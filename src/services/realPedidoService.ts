@@ -111,13 +111,15 @@ export class PedidoService {
       throw new Error(`Cartelas não podem ser devolvidas: ${cartelasInvalidas.join(', ')}`);
     }
 
-    // Mover cartelas de vendidas para devolvidas
+    // Mover cartelas de vendidas para devolvidas e adicionar de volta às pendentes
     const cartelasVendidas = pedido.cartelasVendidas.filter(c => !cartelas.includes(c));
     const cartelasDevolvidas = [...pedido.cartelasDevolvidas, ...cartelas];
+    const cartelasPendentes = [...pedido.cartelasPendentes, ...cartelas];
 
     return this.update(pedidoId, {
       cartelasVendidas,
-      cartelasDevolvidas
+      cartelasDevolvidas,
+      cartelasPendentes
     });
   }
 

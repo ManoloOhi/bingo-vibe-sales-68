@@ -18,10 +18,8 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
   const [cartelasSelecionadas, setCartelasSelecionadas] = useState<number[]>([]);
   const { toast } = useToast();
 
-  // Cartelas disponíveis para venda = retiradas - vendidas - devolvidas
-  const cartelasDisponiveis = pedido.cartelasRetiradas.filter(c => 
-    !pedido.cartelasVendidas.includes(c) && !pedido.cartelasDevolvidas.includes(c)
-  );
+  // Cartelas disponíveis para venda (pendentes)
+  const cartelasDisponiveis = pedido.cartelasPendentes;
 
   const toggleCartela = (cartela: number) => {
     setCartelasSelecionadas(prev => 
@@ -95,7 +93,7 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
           </div>
 
           <div className="space-y-2">
-            <div className="text-sm font-medium">Cartelas Retiradas</div>
+            <div className="text-sm font-medium">Cartelas Pendentes</div>
             <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto border rounded p-3">
               {cartelasDisponiveis.map(cartela => (
                 <Badge

@@ -88,9 +88,14 @@ export default function Pedidos() {
             pedidos.map((pedido) => {
               const vendedor = vendedores[pedido.vendedorId];
               const bingo = bingos[pedido.bingoId];
-              const cartelasPendentes = pedido.cartelasRetiradas.filter(c => 
-                !pedido.cartelasVendidas.includes(c) && !pedido.cartelasDevolvidas.includes(c)
-              );
+              // Debug log
+              console.log('Pedido data:', {
+                id: pedido.id,
+                retiradas: pedido.cartelasRetiradas,
+                pendentes: pedido.cartelasPendentes,
+                vendidas: pedido.cartelasVendidas,
+                devolvidas: pedido.cartelasDevolvidas
+              });
 
               return (
                 <Card key={pedido.id} className="border border-border/50">
@@ -124,7 +129,7 @@ export default function Pedidos() {
                       <div>
                         <span className="font-medium">Pendentes:</span>
                         <Badge variant="secondary" className="ml-2">
-                          {cartelasPendentes.length}
+                          {pedido.cartelasPendentes.length}
                         </Badge>
                       </div>
                       <div>

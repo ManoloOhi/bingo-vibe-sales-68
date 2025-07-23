@@ -94,7 +94,9 @@ class ApiService {
   // 📦 PEDIDOS
   // ========================================
   static async getPedidos() {
-    return this.request('/pedidos');
+    const pedidos = await this.request('/pedidos');
+    console.log('API Response - Pedidos:', pedidos);
+    return pedidos;
   }
 
   static async createPedido(pedidoData: any) {
