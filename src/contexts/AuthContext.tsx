@@ -44,18 +44,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         if (token && savedUserId) {
           console.log('🔍 AUTH: Chamando getCurrentUser...');
-          const response = await ApiService.getCurrentUser();
-          console.log('🔍 AUTH: Resposta getCurrentUser:', response);
-          setUser(response.user);
-          console.log('🔍 AUTH: Usuário definido no contexto');
+          try {
+            const response = await ApiService.getCurrentUser();
+            console.log('🔍 AUTH: Resposta getCurrentUser:', response);
+            setUser(response.user);
+            console.log('🔍 AUTH: Usuário definido no contexto');
+          } catch (apiError) {
+            console.error('❌ AUTH: Erro na API getCurrentUser:', apiError);
+            // Se o token está inválido ou expirado, limpar dados
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userInfo');
+            setUser(null);
+          }
         } else {
           console.log('🔍 AUTH: Token ou UserId não encontrados');
+          setUser(null);
         }
       } catch (error) {
-        console.error('❌ AUTH: Erro ao verificar autenticação:', error);
+        console.error('❌ AUTH: Erro geral na verificação:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
         localStorage.removeItem('userInfo');
+        setUser(null);
       } finally {
         console.log('🔍 AUTH: Finalizando verificação, isLoading = false');
         setIsLoading(false);
@@ -110,6 +121,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
+    console.error('❌ AUTH: useAuth chamado fora do AuthProvider!');
+    console.error('❌ AUTH: Stack trace:', new Error().stack);
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
