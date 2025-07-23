@@ -75,6 +75,10 @@ export class PedidoService {
     if (index === -1) return null;
 
     const pedido = pedidos[index];
+    
+    // Verificar se as cartelas já foram retiradas por outro pedido
+    await this.verificarDisponibilidadeCartelas(pedido.bingoId, cartelas, pedidoId);
+    
     pedido.cartelasRetiradas = [...new Set([...pedido.cartelasRetiradas, ...cartelas])];
     pedido.updatedAt = new Date();
     
@@ -89,6 +93,13 @@ export class PedidoService {
     if (index === -1) return null;
 
     const pedido = pedidos[index];
+    
+    // Verificar se as cartelas foram retiradas primeiro
+    const cartelasNaoRetiradas = cartelas.filter(c => !pedido.cartelasRetiradas.includes(c));
+    if (cartelasNaoRetiradas.length > 0) {
+      throw new Error(`Cartelas ${cartelasNaoRetiradas.join(', ')} não foram retiradas ainda`);
+    }
+    
     pedido.cartelasVendidas = [...new Set([...pedido.cartelasVendidas, ...cartelas])];
     pedido.updatedAt = new Date();
     
@@ -103,7 +114,16 @@ export class PedidoService {
     if (index === -1) return null;
 
     const pedido = pedidos[index];
+    
+    // Verificar se as cartelas foram retiradas primeiro
+    const cartelasNaoRetiradas = cartelas.filter(c => !pedido.cartelasRetiradas.includes(c));
+    if (cartelasNaoRetiradas.length > 0) {
+      throw new Error(`Cartelas ${cartelasNaoRetiradas.join(', ')} não foram retiradas ainda`);
+    }
+    
     pedido.cartelasDevolvidas = [...new Set([...pedido.cartelasDevolvidas, ...cartelas])];
+    // Remover das cartelas retiradas quando devolvidas
+    pedido.cartelasRetiradas = pedido.cartelasRetiradas.filter(c => !cartelas.includes(c));
     pedido.updatedAt = new Date();
     
     this.savePedidos(pedidos);
@@ -124,5 +144,52 @@ export class PedidoService {
 
   static async list(): Promise<Pedido[]> {
     return this.getPedidos();
+  }
+
+  private static async verificarDisponibilidadeCartelas(bingoId: string, cartelas: number[], pedidoIdExcluir?: string): Promise<void> {
+    const pedidos = this.getPedidos().filter(p => p.bingoId === bingoId && p.id !== pedidoIdExcluir);
+    
+    const cartelasJaRetiradas = new Set<number>();
+    pedidos.forEach(pedido => {
+      pedido.cartelasRetiradas.forEach(cartela => cartelasJaRetiradas.add(cartela));
+    });
+
+    const cartelasIndisponiveis = cartelas.filter(c => cartelasJaRetiradas.has(c));
+    if (cartelasIndisponiveis.length > 0) {
+      throw new Error(`Cartelas ${cartelasIndisponiveis.join(', ')} já foram retiradas por outro vendedor`);
+    }
+  }
+
+  static async getCartelasPorVendedor(vendedorId: string, bingoId?: string) {
+    const pedidos = this.getPedidos().filter(p => 
+      p.vendedorId === vendedorId && (!bingoId || p.bingoId === bingoId)
+    );
+    
+    const resultado = {
+      retiradas: [] as number[],
+      vendidas: [] as number[],
+      devolvidas: [] as number[],
+      pendentes: [] as number[]
+    };
+
+    pedidos.forEach(pedido => {
+      resultado.retiradas.push(...pedido.cartelasRetiradas);
+      resultado.vendidas.push(...pedido.cartelasVendidas);
+      resultado.devolvidas.push(...pedido.cartelasDevolvidas);
+      
+      // Cartelas pendentes = retiradas - vendidas - devolvidas
+      const pendentes = pedido.cartelasRetiradas.filter(c => 
+        !pedido.cartelasVendidas.includes(c) && !pedido.cartelasDevolvidas.includes(c)
+      );
+      resultado.pendentes.push(...pendentes);
+    });
+
+    // Remover duplicatas e ordenar
+    resultado.retiradas = [...new Set(resultado.retiradas)].sort((a, b) => a - b);
+    resultado.vendidas = [...new Set(resultado.vendidas)].sort((a, b) => a - b);
+    resultado.devolvidas = [...new Set(resultado.devolvidas)].sort((a, b) => a - b);
+    resultado.pendentes = [...new Set(resultado.pendentes)].sort((a, b) => a - b);
+
+    return resultado;
   }
 }
