@@ -1,11 +1,12 @@
 import { PageLayout } from '@/components/Layout/PageLayout';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Calendar, Target, Users, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Target, Users, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { BingoService } from '@/services/mockBingoService';
 import { PedidoService } from '@/services/mockPedidoService';
+import { CreateBingoForm } from '@/components/forms/CreateBingoForm';
 import type { Bingo } from '@/services/mockBingoService';
 
 export default function Bingos() {
@@ -13,27 +14,31 @@ export default function Bingos() {
   const [loading, setLoading] = useState(true);
   const [vendas, setVendas] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    const loadBingos = async () => {
-      try {
-        const bingosData = await BingoService.list();
-        setBingos(bingosData);
+  const loadBingos = async () => {
+    try {
+      const bingosData = await BingoService.list();
+      setBingos(bingosData);
 
-        // Carregar vendas por bingo
-        const vendasPorBingo: Record<string, number> = {};
-        for (const bingo of bingosData) {
-          const pedidos = await PedidoService.findByBingo(bingo.id);
-          const totalVendidas = pedidos.reduce((total, p) => total + p.cartelasVendidas.length, 0);
-          vendasPorBingo[bingo.id] = totalVendidas;
-        }
-        setVendas(vendasPorBingo);
-      } catch (error) {
-        console.error('Erro ao carregar bingos:', error);
-      } finally {
-        setLoading(false);
+      // Carregar vendas por bingo
+      const vendasPorBingo: Record<string, number> = {};
+      for (const bingo of bingosData) {
+        const pedidos = await PedidoService.findByBingo(bingo.id);
+        const totalVendidas = pedidos.reduce((total, p) => total + p.cartelasVendidas.length, 0);
+        vendasPorBingo[bingo.id] = totalVendidas;
       }
-    };
+      setVendas(vendasPorBingo);
+    } catch (error) {
+      console.error('Erro ao carregar bingos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const handleBingoCreated = () => {
+    loadBingos();
+  };
+
+  useEffect(() => {
     loadBingos();
   }, []);
 
@@ -69,10 +74,7 @@ export default function Bingos() {
   return (
     <PageLayout title="Bingos" subtitle="Gerencie seus eventos">
       <div className="space-y-4">
-        <Button className="w-full bg-gradient-to-r from-primary to-primary-glow">
-          <Plus size={18} />
-          Criar Novo Bingo
-        </Button>
+        <CreateBingoForm onBingoCreated={handleBingoCreated} />
         
         <div className="space-y-3">
           {bingos.length === 0 ? (
