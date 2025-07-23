@@ -5,9 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Target, Users, TrendingUp, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { BingoService } from '@/services/bingoService';
-import { VendedorService } from '@/services/vendedorService';
-import { PedidoService } from '@/services/pedidoService';
+import { BingoService } from '@/services/mockBingoService';
+import { VendedorService } from '@/services/mockVendedorService';
+import { PedidoService } from '@/services/mockPedidoService';
 
 const Index = () => {
   const [stats, setStats] = useState({

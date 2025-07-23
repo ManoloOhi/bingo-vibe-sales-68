@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Calendar, Target, Users, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { BingoService } from '@/services/bingoService';
-import { PedidoService } from '@/services/pedidoService';
-import type { Bingo } from '@/db/schema';
+import { BingoService } from '@/services/mockBingoService';
+import { PedidoService } from '@/services/mockPedidoService';
+import type { Bingo } from '@/services/mockBingoService';
 
 export default function Bingos() {
   const [bingos, setBingos] = useState<Bingo[]>([]);

@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Clock, CheckCircle, XCircle, Package, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { PedidoService } from '@/services/pedidoService';
-import { VendedorService } from '@/services/vendedorService';
-import type { Pedido, Vendedor } from '@/db/schema';
+import { PedidoService } from '@/services/mockPedidoService';
+import { VendedorService } from '@/services/mockVendedorService';
+import type { Pedido } from '@/services/mockPedidoService';
+import type { Vendedor } from '@/services/mockVendedorService';
 
 export default function Pedidos() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);

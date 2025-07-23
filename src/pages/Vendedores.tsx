@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Phone, Mail, Package, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { VendedorService } from '@/services/vendedorService';
-import { PedidoService } from '@/services/pedidoService';
-import type { Vendedor } from '@/db/schema';
+import { VendedorService } from '@/services/mockVendedorService';
+import { PedidoService } from '@/services/mockPedidoService';
+import type { Vendedor } from '@/services/mockVendedorService';
 
 export default function Vendedores() {
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
