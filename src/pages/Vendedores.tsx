@@ -2,10 +2,11 @@ import { PageLayout } from '@/components/Layout/PageLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Phone, Mail, Package, Loader2 } from 'lucide-react';
+import { Phone, Mail, Package, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { VendedorService } from '@/services/mockVendedorService';
 import { PedidoService } from '@/services/mockPedidoService';
+import { CreateVendedorForm } from '@/components/forms/CreateVendedorForm';
 import type { Vendedor } from '@/services/mockVendedorService';
 
 export default function Vendedores() {
@@ -13,27 +14,31 @@ export default function Vendedores() {
   const [loading, setLoading] = useState(true);
   const [pedidosAtivos, setPedidosAtivos] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    const loadVendedores = async () => {
-      try {
-        const vendedoresData = await VendedorService.list();
-        setVendedores(vendedoresData);
+  const loadVendedores = async () => {
+    try {
+      const vendedoresData = await VendedorService.list();
+      setVendedores(vendedoresData);
 
-        // Carregar pedidos ativos por vendedor
-        const pedidosPorVendedor: Record<string, number> = {};
-        for (const vendedor of vendedoresData) {
-          const pedidos = await PedidoService.findByVendedor(vendedor.id);
-          const pedidosAbertos = pedidos.filter(p => p.status === 'aberto').length;
-          pedidosPorVendedor[vendedor.id] = pedidosAbertos;
-        }
-        setPedidosAtivos(pedidosPorVendedor);
-      } catch (error) {
-        console.error('Erro ao carregar vendedores:', error);
-      } finally {
-        setLoading(false);
+      // Carregar pedidos ativos por vendedor
+      const pedidosPorVendedor: Record<string, number> = {};
+      for (const vendedor of vendedoresData) {
+        const pedidos = await PedidoService.findByVendedor(vendedor.id);
+        const pedidosAbertos = pedidos.filter(p => p.status === 'aberto').length;
+        pedidosPorVendedor[vendedor.id] = pedidosAbertos;
       }
-    };
+      setPedidosAtivos(pedidosPorVendedor);
+    } catch (error) {
+      console.error('Erro ao carregar vendedores:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const handleVendedorCreated = () => {
+    loadVendedores();
+  };
+
+  useEffect(() => {
     loadVendedores();
   }, []);
 
@@ -66,10 +71,7 @@ export default function Vendedores() {
   return (
     <PageLayout title="Vendedores" subtitle="Gerencie sua equipe">
       <div className="space-y-4">
-        <Button className="w-full bg-gradient-to-r from-primary to-primary-glow">
-          <Plus size={18} />
-          Adicionar Vendedor
-        </Button>
+        <CreateVendedorForm onVendedorCreated={handleVendedorCreated} />
         
         <div className="space-y-3">
           {vendedores.length === 0 ? (

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { BingoService } from '@/services/mockBingoService';
 import { VendedorService } from '@/services/mockVendedorService';
 import { PedidoService } from '@/services/mockPedidoService';
+import { initializeMockData } from '@/services/initMockData';
 
 const Index = () => {
   const [stats, setStats] = useState({
@@ -21,6 +22,9 @@ const Index = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
+        // Inicializar dados de exemplo se necessário
+        await initializeMockData();
+
         const [bingos, vendedores, pedidos] = await Promise.all([
           BingoService.list(),
           VendedorService.list(),

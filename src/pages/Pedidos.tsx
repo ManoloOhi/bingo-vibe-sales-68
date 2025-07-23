@@ -2,10 +2,11 @@ import { PageLayout } from '@/components/Layout/PageLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Clock, CheckCircle, XCircle, Package, Loader2 } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Package, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PedidoService } from '@/services/mockPedidoService';
 import { VendedorService } from '@/services/mockVendedorService';
+import { CreatePedidoForm } from '@/components/forms/CreatePedidoForm';
 import type { Pedido } from '@/services/mockPedidoService';
 import type { Vendedor } from '@/services/mockVendedorService';
 
@@ -14,29 +15,33 @@ export default function Pedidos() {
   const [vendedores, setVendedores] = useState<Record<string, Vendedor>>({});
   const [loading, setLoading] = useState(true);
 
+  const loadPedidos = async () => {
+    try {
+      const [pedidosData, vendedoresData] = await Promise.all([
+        PedidoService.list(),
+        VendedorService.list()
+      ]);
+
+      setPedidos(pedidosData);
+
+      // Criar mapa de vendedores por ID
+      const vendedoresMap = vendedoresData.reduce((acc, v) => {
+        acc[v.id] = v;
+        return acc;
+      }, {} as Record<string, Vendedor>);
+      setVendedores(vendedoresMap);
+    } catch (error) {
+      console.error('Erro ao carregar pedidos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePedidoCreated = () => {
+    loadPedidos();
+  };
+
   useEffect(() => {
-    const loadPedidos = async () => {
-      try {
-        const [pedidosData, vendedoresData] = await Promise.all([
-          PedidoService.list(),
-          VendedorService.list()
-        ]);
-
-        setPedidos(pedidosData);
-
-        // Criar mapa de vendedores por ID
-        const vendedoresMap = vendedoresData.reduce((acc, v) => {
-          acc[v.id] = v;
-          return acc;
-        }, {} as Record<string, Vendedor>);
-        setVendedores(vendedoresMap);
-      } catch (error) {
-        console.error('Erro ao carregar pedidos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadPedidos();
   }, []);
 
@@ -92,10 +97,7 @@ export default function Pedidos() {
   return (
     <PageLayout title="Pedidos" subtitle="Controle de cartelas">
       <div className="space-y-4">
-        <Button className="w-full bg-gradient-to-r from-primary to-primary-glow">
-          <Plus size={18} />
-          Novo Pedido
-        </Button>
+        <CreatePedidoForm onPedidoCreated={handlePedidoCreated} />
         
         <div className="space-y-3">
           {pedidos.length === 0 ? (
