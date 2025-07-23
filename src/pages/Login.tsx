@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { AlertCircle, User, Shield } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
@@ -92,24 +92,6 @@ export default function Login() {
             </form>
           </CardContent>
         </Card>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="border-primary/20">
-            <CardContent className="p-4 text-center">
-              <Shield className="w-8 h-8 text-primary mx-auto mb-2" />
-              <h3 className="font-semibold text-sm">Administrador</h3>
-              <p className="text-xs text-muted-foreground">Acesso completo ao sistema</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-secondary/20">
-            <CardContent className="p-4 text-center">
-              <User className="w-8 h-8 text-secondary mx-auto mb-2" />
-              <h3 className="font-semibold text-sm">Usuário</h3>
-              <p className="text-xs text-muted-foreground">Acesso limitado</p>
-            </CardContent>
-          </Card>
-        </div>
 
         <div className="text-center">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
