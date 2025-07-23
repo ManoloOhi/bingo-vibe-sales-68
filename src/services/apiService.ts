@@ -105,6 +105,10 @@ class ApiService {
     return pedidos;
   }
 
+  static async getPedido(id: string) {
+    return this.request(`/pedidos/${id}`);
+  }
+
   static async createPedido(pedidoData: any) {
     return this.request('/pedidos', {
       method: 'POST',

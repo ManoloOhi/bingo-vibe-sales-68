@@ -42,6 +42,54 @@ pedidoRoutes.get('/', verifyToken, async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// GET /api/pedidos/:id
+pedidoRoutes.get('/:id', verifyToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (req.user?.tipo === 'admin') {
+      // Admin pode ver qualquer pedido
+      const [result] = await db
+        .select()
+        .from(pedidos)
+        .where(eq(pedidos.id, req.params.id));
+      
+      if (!result) {
+        return res.status(404).json({ error: 'Pedido não encontrado' });
+      }
+      
+      res.json(result);
+    } else {
+      // Usuários comuns veem apenas pedidos de seus vendedores
+      const [result] = await db
+        .select({
+          id: pedidos.id,
+          bingoId: pedidos.bingoId,
+          vendedorId: pedidos.vendedorId,
+          quantidade: pedidos.quantidade,
+          cartelasRetiradas: pedidos.cartelasRetiradas,
+          cartelasPendentes: pedidos.cartelasPendentes,
+          cartelasVendidas: pedidos.cartelasVendidas,
+          cartelasDevolvidas: pedidos.cartelasDevolvidas,
+          status: pedidos.status,
+          createdAt: pedidos.createdAt,
+          updatedAt: pedidos.updatedAt,
+        })
+        .from(pedidos)
+        .innerJoin(vendedores, eq(pedidos.vendedorId, vendedores.id))
+        .where(eq(pedidos.id, req.params.id))
+        .where(eq(vendedores.userId, req.user.userId));
+      
+      if (!result) {
+        return res.status(404).json({ error: 'Pedido não encontrado' });
+      }
+      
+      res.json(result);
+    }
+  } catch (error) {
+    console.error('Erro ao buscar pedido:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // POST /api/pedidos
 pedidoRoutes.post('/', verifyToken, async (req: AuthenticatedRequest, res) => {
   try {

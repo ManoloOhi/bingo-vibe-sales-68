@@ -27,8 +27,7 @@ export class PedidoService {
   }
 
   static async findById(id: string): Promise<Pedido | null> {
-    const pedidos = await this.list();
-    return pedidos.find(p => p.id === id) || null;
+    return ApiService.getPedido(id);
   }
 
   static async findByVendedor(vendedorId: string): Promise<Pedido[]> {
