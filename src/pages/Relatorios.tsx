@@ -38,9 +38,21 @@ export default function Relatorios() {
         // Calcular vendedores ativos (com pedidos abertos)
         const vendedoresComPedidos = new Set(pedidos.filter(p => p.status === 'aberto').map(p => p.vendedorId));
         
-        // Calcular total de vendas (estimativa baseada em R$5 por cartela)
-        const valorEstimadoPorCartela = 5;
-        const totalVendas = totalCartelasVendidas * valorEstimadoPorCartela;
+        // Criar mapa de bingos para acesso rápido
+        const bingosMap = bingos.reduce((acc, bingo) => {
+          acc[bingo.id] = bingo;
+          return acc;
+        }, {} as Record<string, any>);
+        
+        // Calcular total de vendas usando valores reais dos bingos
+        const totalVendas = pedidos.reduce((total, pedido) => {
+          const bingo = bingosMap[pedido.bingoId];
+          if (bingo && bingo.valorCartela) {
+            const valorCartela = parseFloat(bingo.valorCartela);
+            return total + (pedido.cartelasVendidas.length * valorCartela);
+          }
+          return total;
+        }, 0);
         
         // Calcular taxa de conversão
         const taxaConversao = totalCartelasRetiradas > 0 ? (totalCartelasVendidas / totalCartelasRetiradas) * 100 : 0;
