@@ -9,6 +9,51 @@ import { BingoService } from '@/services/realBingoService';
 import { VendedorService } from '@/services/realVendedorService';
 import { PedidoService } from '@/services/realPedidoService';
 import { ApiService } from '@/services/apiService';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+// Função para gerar últimas atividades baseadas nos dados reais
+const getUltimasAtividades = (pedidos: any[], vendedores: { [key: string]: any }, bingos: { [key: string]: any }) => {
+  const atividades: { texto: string; tempo: string; data: Date }[] = [];
+
+  // Adicionar atividades de pedidos
+  pedidos.forEach(pedido => {
+    const vendedor = vendedores[pedido.vendedorId];
+    const bingo = bingos[pedido.bingoId];
+    
+    if (vendedor && bingo) {
+      // Atividade de criação do pedido
+      atividades.push({
+        texto: `${vendedor.nome} retirou ${pedido.quantidade} cartelas`,
+        tempo: formatDistanceToNow(new Date(pedido.createdAt), { addSuffix: true, locale: ptBR }),
+        data: new Date(pedido.createdAt)
+      });
+
+      // Atividades de vendas (se houver)
+      if (pedido.cartelasVendidas.length > 0) {
+        atividades.push({
+          texto: `${vendedor.nome} vendeu ${pedido.cartelasVendidas.length} cartelas`,
+          tempo: formatDistanceToNow(new Date(pedido.updatedAt), { addSuffix: true, locale: ptBR }),
+          data: new Date(pedido.updatedAt)
+        });
+      }
+    }
+  });
+
+  // Adicionar atividades de bingos criados
+  Object.values(bingos).forEach(bingo => {
+    atividades.push({
+      texto: `Bingo "${bingo.nome}" foi criado`,
+      tempo: formatDistanceToNow(new Date(bingo.createdAt), { addSuffix: true, locale: ptBR }),
+      data: new Date(bingo.createdAt)
+    });
+  });
+
+  // Ordenar por data mais recente e pegar apenas as 3 mais recentes
+  return atividades
+    .sort((a, b) => b.data.getTime() - a.data.getTime())
+    .slice(0, 3);
+};
 
 const Index = () => {
   const [stats, setStats] = useState({
@@ -18,6 +63,9 @@ const Index = () => {
     cartelasVendidas: 0
   });
   const [loading, setLoading] = useState(true);
+  const [pedidos, setPedidos] = useState<any[]>([]);
+  const [vendedores, setVendedores] = useState<{ [key: string]: any }>({});
+  const [bingos, setBingos] = useState<{ [key: string]: any }>({});
 
   useEffect(() => {
     const loadStats = async () => {
@@ -28,30 +76,44 @@ const Index = () => {
         await ApiService.healthCheck();
 
         console.log('Index: Carregando dados dos serviços...');
-        const [bingos, vendedores, pedidos] = await Promise.all([
+        const [bingosData, vendedoresData, pedidosData] = await Promise.all([
           BingoService.list(),
           VendedorService.list(),
           PedidoService.list()
         ]);
 
         console.log('Index: Dados carregados:', {
-          bingos: bingos.length,
-          vendedores: vendedores.length,
-          pedidos: pedidos.length
+          bingos: bingosData.length,
+          vendedores: vendedoresData.length,
+          pedidos: pedidosData.length
         });
 
-        const pedidosPendentes = pedidos.filter(p => p.status === 'aberto').length;
-        const cartelasVendidas = pedidos.reduce((total, p) => total + p.cartelasVendidas.length, 0);
+        // Criar maps para facilitar acesso
+        const vendedoresMap = vendedoresData.reduce((acc: any, vendedor: any) => {
+          acc[vendedor.id] = vendedor;
+          return acc;
+        }, {});
+
+        const bingosMap = bingosData.reduce((acc: any, bingo: any) => {
+          acc[bingo.id] = bingo;
+          return acc;
+        }, {});
+
+        const pedidosPendentes = pedidosData.filter((p: any) => p.status === 'aberto').length;
+        const cartelasVendidas = pedidosData.reduce((total: number, p: any) => total + p.cartelasVendidas.length, 0);
 
         const newStats = {
-          bingosAtivos: bingos.length,
-          vendedores: vendedores.length,
+          bingosAtivos: bingosData.length,
+          vendedores: vendedoresData.length,
           pedidosPendentes,
           cartelasVendidas
         };
 
         console.log('Index: Stats calculadas:', newStats);
         setStats(newStats);
+        setPedidos(pedidosData);
+        setVendedores(vendedoresMap);
+        setBingos(bingosMap);
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
       } finally {
@@ -150,18 +212,12 @@ const Index = () => {
         <Card className="p-4 shadow-[var(--shadow-card)]">
           <h3 className="font-semibold text-foreground mb-3">Últimas Atividades</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">João vendeu 25 cartelas</span>
-              <span className="text-xs text-muted-foreground">2h atrás</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Maria retirou pedido #002</span>
-              <span className="text-xs text-muted-foreground">4h atrás</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Novo bingo criado</span>
-              <span className="text-xs text-muted-foreground">1d atrás</span>
-            </div>
+            {getUltimasAtividades(pedidos, vendedores, bingos).map((atividade, index) => (
+              <div key={index} className="flex justify-between items-center py-2">
+                <span className="text-muted-foreground">{atividade.texto}</span>
+                <span className="text-xs text-muted-foreground">{atividade.tempo}</span>
+              </div>
+            ))}
           </div>
         </Card>
       </div>
