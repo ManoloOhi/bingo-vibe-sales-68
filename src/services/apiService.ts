@@ -1,5 +1,5 @@
 // Serviço para consumir a API REST
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://api-bingo.iaautomation-dev.com.br/api';
 
 class ApiService {
   private static async handleResponse(response: Response) {
@@ -39,7 +39,7 @@ class ApiService {
   // 🏥 HEALTH CHECK
   // ========================================
   static async healthCheck() {
-    const response = await fetch('http://localhost:3001/health');
+    const response = await fetch('https://api-bingo.iaautomation-dev.com.br/health');
     if (!response.ok) throw new Error('API não disponível');
     return response.json();
   }

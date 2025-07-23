@@ -1,7 +1,7 @@
 // Exemplo de como integrar a API com o frontend React
 // Service para consumir a API REST
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://api-bingo.iaautomation-dev.com.br/api';
 
 export class ApiBingoService {
   // ========================================
