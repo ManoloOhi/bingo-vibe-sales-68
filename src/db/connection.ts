@@ -1,27 +1,24 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+import { sql } from '@vercel/postgres';
 import { DB_CONFIG } from '@/config/database';
 import * as schema from './schema';
 
-// Configuração da conexão PostgreSQL
-const pool = new Pool({
-  user: DB_CONFIG.user,
-  password: DB_CONFIG.password,
-  host: DB_CONFIG.host,
-  port: DB_CONFIG.port,
-  database: DB_CONFIG.database,
-  ssl: false, // Ajustar conforme necessário
-});
+// Configurar a URL de conexão PostgreSQL para Vercel client
+const connectionString = `postgresql://${DB_CONFIG.user}:${DB_CONFIG.password}@${DB_CONFIG.host}:${DB_CONFIG.port}/${DB_CONFIG.database}`;
 
-// Instância do Drizzle ORM
-export const db = drizzle(pool, { schema });
+// Configurar a conexão usando @vercel/postgres que funciona no browser
+// Definir a connection string no global environment
+(globalThis as any).process = (globalThis as any).process || {};
+(globalThis as any).process.env = (globalThis as any).process.env || {};
+(globalThis as any).process.env.POSTGRES_URL = connectionString;
+
+// Instância do Drizzle ORM usando Vercel Postgres
+export const db = drizzle(sql, { schema });
 
 // Função para testar a conexão
 export async function testConnection() {
   try {
-    const client = await pool.connect();
-    await client.query('SELECT NOW()');
-    client.release();
+    await sql`SELECT NOW()`;
     console.log('✅ Conexão com PostgreSQL estabelecida');
     return true;
   } catch (error) {
