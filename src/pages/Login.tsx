@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { ApiService } from '@/services/apiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,6 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -21,12 +20,19 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, senha);
+      const response = await ApiService.login(email, senha);
+      
+      // Salvar dados do usuário no localStorage 
+      localStorage.setItem('userId', response.user.id);
+      localStorage.setItem('userInfo', JSON.stringify(response.user));
+      
       toast({
         title: "Login realizado com sucesso!",
         description: "Redirecionando...",
       });
-      navigate('/');
+      
+      // Recarregar a página para que o AuthProvider carregue o usuário
+      window.location.href = '/';
     } catch (error: any) {
       toast({
         title: "Erro no login",
