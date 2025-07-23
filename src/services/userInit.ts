@@ -28,6 +28,12 @@ export async function getOrCreateDefaultUser() {
 }
 
 export async function getDefaultUserId(): Promise<string> {
-  // Por enquanto, usar um ID fixo. Em produção, seria obtido da autenticação via API
-  return 'default-admin-user';
+  // Tentar obter o ID do usuário logado
+  const userId = localStorage.getItem('userId');
+  if (userId) {
+    return userId;
+  }
+  
+  // Fallback para ID fixo se não houver usuário logado
+  return 'admin-default';
 }

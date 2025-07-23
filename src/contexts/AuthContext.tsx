@@ -70,9 +70,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const response = await ApiService.getCurrentUser();
             console.log('🔍 AUTH: Resposta getCurrentUser bem-sucedida:', response);
             
-            if (response.user) {
-              setUser(response.user);
-              console.log('🔍 AUTH: Usuário definido no contexto:', response.user.email);
+            if (response && response.id) {
+              setUser(response);
+              console.log('🔍 AUTH: Usuário definido no contexto:', response.email);
             } else {
               console.log('🔍 AUTH: Resposta não contém usuário');
               throw new Error('Resposta da API não contém dados do usuário');

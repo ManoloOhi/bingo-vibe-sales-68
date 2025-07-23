@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
 import { VendedorService } from '@/services/realVendedorService';
 import { useToast } from '@/hooks/use-toast';
-import { getDefaultUserId } from '@/services/userInit';
+import { useAuth } from '@/contexts/AuthContext';
 import type { NewVendedor } from '@/services/realVendedorService';
 
 interface CreateVendedorFormProps {
@@ -22,15 +22,19 @@ export function CreateVendedorForm({ onVendedorCreated }: CreateVendedorFormProp
     whatsapp: ''
   });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const userId = await getDefaultUserId();
+      if (!user) {
+        throw new Error('Usuário não está logado');
+      }
+      
       const vendedorData: Omit<NewVendedor, 'id' | 'createdAt' | 'updatedAt'> = {
-        userId,
+        userId: user.id,
         nome: formData.nome,
         email: formData.email,
         whatsapp: formData.whatsapp,
