@@ -148,7 +148,13 @@ const VendedorCard = ({ vendedor }: { vendedor: Vendedor }) => {
       </div>
       
       <div className="flex items-center justify-between pt-3">
-        <VendedorPedidos vendedorId={vendedor.id} />
+        <div className="flex items-center gap-2">
+          <Package size={16} className="text-primary" />
+          <span className="text-sm font-medium">{pedidosAbertos} pedidos</span>
+          <Badge variant="outline" className="text-xs">
+            {vendedor.ativo ? 'aberto' : 'inativo'}
+          </Badge>
+        </div>
         <div className="flex gap-2">
           <Button
             size="sm"
