@@ -365,28 +365,70 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       return disponiveis.sort((a, b) => a - b);
     })(),
     
-    estatisticas: (() => {
-      if (!bingo || !pedidosDoBingo) return null;
+    cartelasIndisponiveis: (() => {
+      if (!bingo || !pedidosDoBingo) return [];
       
-      const totalCartelas = bingo.rangeFim - bingo.rangeInicio + 1;
-      
-      const cartelasRetiradas = new Set<number>();
+      const cartelasOcupadas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
       pedidosDoBingo.forEach(pedido => {
-        pedido.cartelasRetiradas.forEach(cartela => cartelasRetiradas.add(cartela));
+        pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
         pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
       });
       
-      const ocupadas = cartelasRetiradas.size - cartelasDevolvidas.size;
-      const disponiveis = totalCartelas - ocupadas;
+      // Cartelas indisponíveis = ocupadas - devolvidas
+      const indisponiveis = Array.from(cartelasOcupadas).filter(cartela => 
+        !cartelasDevolvidas.has(cartela)
+      ).sort((a, b) => a - b);
       
-      return {
-        total: totalCartelas,
-        disponiveis,
-        ocupadas,
-        devolvidas: cartelasDevolvidas.size
-      };
+      return indisponiveis;
+    })(),
+    
+    rangesIndisponiveis: (() => {
+      if (!bingo || !pedidosDoBingo) return [];
+      
+      const cartelasOcupadas = new Set<number>();
+      const cartelasDevolvidas = new Set<number>();
+      
+      pedidosDoBingo.forEach(pedido => {
+        pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+        pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
+      });
+      
+      const indisponiveis = Array.from(cartelasOcupadas).filter(cartela => 
+        !cartelasDevolvidas.has(cartela)
+      ).sort((a, b) => a - b);
+      
+      if (indisponiveis.length === 0) return [];
+      
+      // Agrupar números consecutivos em ranges
+      const ranges: string[] = [];
+      let inicio = indisponiveis[0];
+      let fim = indisponiveis[0];
+      
+      for (let i = 1; i < indisponiveis.length; i++) {
+        if (indisponiveis[i] === fim + 1) {
+          fim = indisponiveis[i];
+        } else {
+          // Finalizar range atual
+          if (inicio === fim) {
+            ranges.push(inicio.toString());
+          } else {
+            ranges.push(`${inicio}-${fim}`);
+          }
+          inicio = indisponiveis[i];
+          fim = indisponiveis[i];
+        }
+      }
+      
+      // Adicionar último range
+      if (inicio === fim) {
+        ranges.push(inicio.toString());
+      } else {
+        ranges.push(`${inicio}-${fim}`);
+      }
+      
+      return ranges;
     })(),
     
     validarRange: (inicio: number, fim: number) => {

@@ -24,7 +24,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
   const retirarCartelas = useRetirarCartelas();
   
   // Usar o novo hook para cartelas disponíveis
-  const { cartelasDisponiveis, estatisticas, validarRange } = useCartelasDisponiveis(pedido.bingoId);
+  const { cartelasDisponiveis, rangesIndisponiveis, validarRange } = useCartelasDisponiveis(pedido.bingoId);
 
   // Validação em tempo real do range
   const rangeValidation = (() => {
@@ -134,27 +134,21 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Estatísticas do Bingo */}
-          {estatisticas && (
-            <div className="bg-muted/50 p-3 rounded space-y-2">
-              <div className="text-sm font-medium">Estatísticas do Bingo</div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex justify-between">
-                  <span>Total:</span>
-                  <span className="font-medium">{estatisticas.total}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-green-600">Disponíveis:</span>
-                  <span className="font-medium text-green-600">{estatisticas.disponiveis}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-red-600">Ocupadas:</span>
-                  <span className="font-medium text-red-600">{estatisticas.ocupadas}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-600">Devolvidas:</span>
-                  <span className="font-medium text-blue-600">{estatisticas.devolvidas}</span>
-                </div>
+          {/* Cartelas Indisponíveis */}
+          {rangesIndisponiveis.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg">
+              <div className="text-sm font-medium text-destructive mb-2">
+                Cartelas Indisponíveis
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {rangesIndisponiveis.map((range, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2 py-1 rounded-md bg-destructive/20 text-destructive text-xs font-medium"
+                  >
+                    {range}
+                  </span>
+                ))}
               </div>
             </div>
           )}
