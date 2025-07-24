@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,17 @@ export function EditBingoForm({ bingo, onBingoUpdated }: EditBingoFormProps) {
     dataBingo: bingo.dataBingo instanceof Date ? bingo.dataBingo.toISOString().split('T')[0] : new Date(bingo.dataBingo).toISOString().split('T')[0]
   });
   const { toast } = useToast();
+
+  // Auto-update quantidade when range changes
+  useEffect(() => {
+    const inicio = parseInt(formData.rangeInicio);
+    const fim = parseInt(formData.rangeFim);
+    
+    if (!isNaN(inicio) && !isNaN(fim) && inicio < fim) {
+      const quantidade = fim - inicio + 1;
+      setFormData(prev => ({ ...prev, quantidadeCartelas: quantidade.toString() }));
+    }
+  }, [formData.rangeInicio, formData.rangeFim]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,8 +139,9 @@ export function EditBingoForm({ bingo, onBingoUpdated }: EditBingoFormProps) {
               id="quantidadeCartelas"
               type="number"
               value={formData.quantidadeCartelas}
-              onChange={(e) => setFormData(prev => ({ ...prev, quantidadeCartelas: e.target.value }))}
               placeholder="100"
+              disabled
+              className="bg-muted text-muted-foreground"
               required
             />
           </div>

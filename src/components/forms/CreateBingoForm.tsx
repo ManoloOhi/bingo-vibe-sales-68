@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,9 +25,21 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
     nome: '',
     rangeInicio: '',
     rangeFim: '',
+    quantidadeCartelas: '',
     valorCartela: ''
   });
   const { toast } = useToast();
+
+  // Auto-update quantidade when range changes
+  useEffect(() => {
+    const inicio = parseInt(formData.rangeInicio);
+    const fim = parseInt(formData.rangeFim);
+    
+    if (!isNaN(inicio) && !isNaN(fim) && inicio < fim) {
+      const quantidade = fim - inicio + 1;
+      setFormData(prev => ({ ...prev, quantidadeCartelas: quantidade.toString() }));
+    }
+  }, [formData.rangeInicio, formData.rangeFim]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +57,7 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
 
       const rangeInicio = parseInt(formData.rangeInicio);
       const rangeFim = parseInt(formData.rangeFim);
-      const quantidadeCartelas = rangeFim - rangeInicio + 1;
+      const quantidadeCartelas = parseInt(formData.quantidadeCartelas);
 
       const userId = await getDefaultUserId();
       const bingoData: Omit<NewBingo, 'id' | 'createdAt' | 'updatedAt'> = {
@@ -66,7 +78,7 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
         description: "Bingo criado com sucesso"
       });
 
-      setFormData({ nome: '', rangeInicio: '', rangeFim: '', valorCartela: '' });
+      setFormData({ nome: '', rangeInicio: '', rangeFim: '', quantidadeCartelas: '', valorCartela: '' });
       setDate(undefined);
       setOpen(false);
       onBingoCreated?.();
@@ -128,6 +140,19 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
                 required
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="quantidadeCartelas">Quantidade de Cartelas</Label>
+            <Input
+              id="quantidadeCartelas"
+              type="number"
+              value={formData.quantidadeCartelas}
+              placeholder="100"
+              disabled
+              className="bg-muted text-muted-foreground"
+              required
+            />
           </div>
 
           <div className="space-y-2">
