@@ -146,17 +146,19 @@ export class PedidoService {
     const pedido = await this.findById(pedidoId);
     if (!pedido) throw new Error('Pedido não encontrado');
 
-    // Verificar se todas as cartelas são pendentes e não foram devolvidas
+    // Verificar se todas as cartelas estão retiradas (pendentes ou vendidas) e não foram devolvidas
     const cartelasInvalidas = cartelas.filter(c => 
-      !pedido.cartelasPendentes.includes(c) || pedido.cartelasDevolvidas.includes(c)
+      (!pedido.cartelasPendentes.includes(c) && !pedido.cartelasVendidas.includes(c)) || 
+      pedido.cartelasDevolvidas.includes(c)
     );
     
     if (cartelasInvalidas.length > 0) {
       throw new Error(`Cartelas não podem ser devolvidas: ${cartelasInvalidas.join(', ')}`);
     }
 
-    // Remover cartelas pendentes e adicionar às devolvidas
+    // Remover cartelas de pendentes, vendidas e retiradas, e adicionar às devolvidas
     const cartelasPendentes = pedido.cartelasPendentes.filter(c => !cartelas.includes(c));
+    const cartelasVendidas = pedido.cartelasVendidas.filter(c => !cartelas.includes(c));
     const cartelasDevolvidas = [...pedido.cartelasDevolvidas, ...cartelas];
     const cartelasRetiradas = pedido.cartelasRetiradas.filter(c => !cartelas.includes(c));
 
@@ -166,7 +168,7 @@ export class PedidoService {
       quantidade: pedido.quantidade,
       cartelasRetiradas,
       cartelasPendentes,
-      cartelasVendidas: pedido.cartelasVendidas, // Preservar vendidas
+      cartelasVendidas,
       cartelasDevolvidas,
       status: pedido.status
     });
