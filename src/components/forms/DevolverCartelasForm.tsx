@@ -20,12 +20,10 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
   const { toast } = useToast();
   const devolverCartelas = useDevolverCartelas();
 
-  // Cartelas disponíveis para devolução = (pendentes + vendidas) - já devolvidas
-  const cartelasDisponiveis = [
-    ...pedido.cartelasPendentes,
-    ...pedido.cartelasVendidas
-  ].filter(c => !pedido.cartelasDevolvidas.includes(c))
-   .sort((a, b) => a - b);
+  // Cartelas disponíveis para devolução = apenas pendentes (não vendidas)
+  const cartelasDisponiveis = pedido.cartelasPendentes
+    .filter(c => !pedido.cartelasDevolvidas.includes(c))
+    .sort((a, b) => a - b);
 
   const getCartelasNoRange = (inicio: number, fim: number): number[] => {
     const min = Math.min(inicio, fim);
