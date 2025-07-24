@@ -156,6 +156,10 @@ class ApiService {
     return this.request(`/bingos/${id}/cartelas/vendidas`);
   }
 
+  static async getBingoEstoque(id: string) {
+    return this.request(`/bingos/${id}/estoque`);
+  }
+
   // ========================================
   // 🔐 AUTENTICAÇÃO
   // ========================================

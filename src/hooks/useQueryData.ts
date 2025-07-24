@@ -11,6 +11,7 @@ import { debugCache } from '@/utils/cacheUtils';
 export const QUERY_KEYS = {
   bingos: ['bingos'] as const,
   bingo: (id: string) => ['bingos', id] as const,
+  bingoEstoque: (id: string) => ['bingos', id, 'estoque'] as const,
   vendedores: ['vendedores'] as const,
   vendedor: (id: string) => ['vendedores', id] as const,
   pedidos: ['pedidos'] as const,
@@ -244,6 +245,7 @@ export const useRetirarCartelas = () => {
         queryClient.invalidateQueries({ 
           queryKey: QUERY_KEYS.pedidosByBingo(updatedPedido.bingoId) 
         });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingoEstoque(updatedPedido.bingoId) });
       }
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
@@ -268,6 +270,7 @@ export const useVenderCartelas = () => {
         queryClient.invalidateQueries({ 
           queryKey: QUERY_KEYS.pedidosByBingo(updatedPedido.bingoId) 
         });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingoEstoque(updatedPedido.bingoId) });
       }
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
@@ -292,6 +295,7 @@ export const useDevolverCartelas = () => {
         queryClient.invalidateQueries({ 
           queryKey: QUERY_KEYS.pedidosByBingo(updatedPedido.bingoId) 
         });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingoEstoque(updatedPedido.bingoId) });
       }
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
@@ -583,3 +587,16 @@ export const useVendasBingo = (bingoId: string) => {
     enabled: !!bingoId,
   });
 };
+
+// ========================================
+// 📊 ESTOQUE EM TEMPO REAL
+// ========================================
+export function useBingoEstoque(bingoId: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.bingoEstoque(bingoId),
+    queryFn: () => ApiService.getBingoEstoque(bingoId),
+    enabled: !!bingoId,
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+    staleTime: 10000, // Considerar dados atuais por 10 segundos
+  });
+}

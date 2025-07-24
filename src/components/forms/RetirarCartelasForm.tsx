@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Package, Minus, AlertTriangle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useRetirarCartelas, useCartelasDisponiveis } from '@/hooks/useQueryData';
+import { useRetirarCartelas, useCartelasDisponiveis, useBingoEstoque } from '@/hooks/useQueryData';
 import type { Pedido } from '@/services/realPedidoService';
 
 interface RetirarCartelasFormProps {
@@ -23,6 +23,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
   const [cartelaIndividual, setCartelaIndividual] = useState('');
   const { toast } = useToast();
   const retirarCartelas = useRetirarCartelas();
+  const { data: estoque } = useBingoEstoque(pedido.bingoId);
   
   // Usar o novo hook para cartelas disponíveis
   const { cartelasDisponiveis, rangesIndisponiveis, validarRange } = useCartelasDisponiveis(pedido.bingoId);
@@ -124,6 +125,17 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
   };
 
   const adicionarCartelasAleatorias = (quantidade: number) => {
+    // Verificar estoque disponível
+    const estoqueDisponivel = estoque?.estoque || 0;
+    if (estoqueDisponivel === 0) {
+      toast({
+        title: "Estoque esgotado",
+        description: "Não há cartelas disponíveis em estoque",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!cartelasDisponiveis || cartelasDisponiveis.length === 0) {
       toast({
         title: "Erro",
@@ -147,7 +159,8 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
       return;
     }
 
-    const quantidadeParaAdicionar = Math.min(quantidade, cartelasNaoSelecionadas.length);
+    // Limitar pela menor quantidade entre: solicitado, disponível ou estoque
+    const quantidadeParaAdicionar = Math.min(quantidade, cartelasNaoSelecionadas.length, estoqueDisponivel);
     
     // Embaralhar e pegar as primeiras N cartelas
     const cartelasAleatorias = [...cartelasNaoSelecionadas]
@@ -174,6 +187,17 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
       toast({
         title: "Erro",
         description: "Selecione pelo menos uma cartela",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verificar estoque antes de enviar
+    const estoqueDisponivel = estoque?.estoque || 0;
+    if (cartelasSelecionadas.length > estoqueDisponivel) {
+      toast({
+        title: "Estoque insuficiente",
+        description: `Só há ${estoqueDisponivel} cartelas disponíveis em estoque`,
         variant: "destructive"
       });
       return;
@@ -216,6 +240,25 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Status do Estoque */}
+          <div className="bg-muted/50 border p-4 rounded-lg">
+            <div className="text-sm font-medium mb-2">
+              Status do Estoque
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Disponível: </span>
+                <span className={`font-medium ${(estoque?.estoque || 0) === 0 ? 'text-destructive' : 'text-success'}`}>
+                  {estoque?.estoque || 0} cartelas
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Pendente: </span>
+                <span className="font-medium">{estoque?.pendente || 0}</span>
+              </div>
+            </div>
+          </div>
+
           {/* Cartelas Indisponíveis */}
           {rangesIndisponiveis.length > 0 && (
             <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg">
@@ -332,7 +375,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
                 variant="outline"
                 size="sm"
                 onClick={() => adicionarCartelasAleatorias(5)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
+                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0 || (estoque?.estoque || 0) === 0}
               >
                 +5 Aleatórias
               </Button>
@@ -341,7 +384,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
                 variant="outline"
                 size="sm"
                 onClick={() => adicionarCartelasAleatorias(10)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
+                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0 || (estoque?.estoque || 0) === 0}
               >
                 +10 Aleatórias
               </Button>
@@ -350,7 +393,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
                 variant="outline"
                 size="sm"
                 onClick={() => adicionarCartelasAleatorias(20)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
+                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0 || (estoque?.estoque || 0) === 0}
               >
                 +20 Aleatórias
               </Button>
@@ -395,7 +438,11 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
             </Button>
             <Button
               type="submit"
-              disabled={retirarCartelas.isPending || cartelasSelecionadas.length === 0}
+              disabled={
+                retirarCartelas.isPending || 
+                cartelasSelecionadas.length === 0 || 
+                cartelasSelecionadas.length > (estoque?.estoque || 0)
+              }
               className="flex-1"
             >
               {retirarCartelas.isPending ? "Retirando..." : `Retirar ${cartelasSelecionadas.length} Cartela(s)`}

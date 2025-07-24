@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Minus } from 'lucide-react';
 import { PedidoService } from '@/services/realPedidoService';
 import { useToast } from '@/hooks/use-toast';
-import { useVenderCartelas } from '@/hooks/useQueryData';
+import { useVenderCartelas, useBingoEstoque } from '@/hooks/useQueryData';
 import type { Pedido } from '@/services/realPedidoService';
 
 interface VenderCartelasFormProps {
@@ -19,6 +19,7 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
   const [ultimaCartelaSelecionada, setUltimaCartelaSelecionada] = useState<number | null>(null);
   const { toast } = useToast();
   const venderCartelas = useVenderCartelas();
+  const { data: estoque } = useBingoEstoque(pedido.bingoId);
 
   // Cartelas disponíveis para venda (pendentes)
   const cartelasDisponiveis = pedido.cartelasPendentes;
@@ -118,8 +119,27 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Status do Estoque */}
+          <div className="bg-muted/50 border p-4 rounded-lg">
+            <div className="text-sm font-medium mb-2">Status do Estoque</div>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Disponível: </span>
+                <span className="font-medium">{estoque?.estoque || 0}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Pendente: </span>
+                <span className="font-medium">{estoque?.pendente || 0}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Vendido: </span>
+                <span className="font-medium">{estoque?.vendido || 0}</span>
+              </div>
+            </div>
+          </div>
+          
           <div className="text-sm text-muted-foreground">
-            {cartelasDisponiveis.length} cartela(s) disponível(is) para venda
+            <p><strong>Cartelas pendentes neste pedido:</strong> {cartelasDisponiveis.length}</p>
           </div>
 
           <div className="space-y-2">
