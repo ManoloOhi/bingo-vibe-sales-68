@@ -134,21 +134,34 @@ export class PedidoService {
     const pedido = await this.findById(pedidoId);
     if (!pedido) throw new Error('Pedido não encontrado');
 
-    // Verificar se todas as cartelas estão vendidas
-    const cartelasInvalidas = cartelas.filter(c => !pedido.cartelasVendidas.includes(c));
+    // Verificar se todas as cartelas podem ser devolvidas (pendentes ou vendidas, mas não já devolvidas)
+    const cartelasValidas = [...pedido.cartelasPendentes, ...pedido.cartelasVendidas];
+    const cartelasInvalidas = cartelas.filter(c => 
+      !cartelasValidas.includes(c) || pedido.cartelasDevolvidas.includes(c)
+    );
+    
     if (cartelasInvalidas.length > 0) {
       throw new Error(`Cartelas não podem ser devolvidas: ${cartelasInvalidas.join(', ')}`);
     }
 
-    // Mover cartelas de vendidas para devolvidas e adicionar de volta às pendentes
-    const cartelasVendidas = pedido.cartelasVendidas.filter(c => !cartelas.includes(c));
+    // Separar cartelas por tipo
+    const cartelasVendidasParaDevolver = cartelas.filter(c => pedido.cartelasVendidas.includes(c));
+    const cartelasPendentesParaDevolver = cartelas.filter(c => pedido.cartelasPendentes.includes(c));
+
+    // Atualizar arrays
+    const cartelasVendidas = pedido.cartelasVendidas.filter(c => !cartelasVendidasParaDevolver.includes(c));
+    const cartelasPendentes = [
+      ...pedido.cartelasPendentes.filter(c => !cartelasPendentesParaDevolver.includes(c)),
+      ...cartelasVendidasParaDevolver // Cartelas vendidas voltam para pendentes
+    ];
     const cartelasDevolvidas = [...pedido.cartelasDevolvidas, ...cartelas];
-    const cartelasPendentes = [...pedido.cartelasPendentes, ...cartelas];
+    const cartelasRetiradas = pedido.cartelasRetiradas.filter(c => !cartelasPendentesParaDevolver.includes(c));
 
     return this.update(pedidoId, {
       cartelasVendidas,
+      cartelasPendentes,
       cartelasDevolvidas,
-      cartelasPendentes
+      cartelasRetiradas
     });
   }
 
