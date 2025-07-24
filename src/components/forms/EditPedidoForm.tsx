@@ -1,17 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit } from 'lucide-react';
-import { PedidoService } from '@/services/realPedidoService';
-import { VendedorService } from '@/services/realVendedorService';
-import { BingoService } from '@/services/realBingoService';
 import { useToast } from '@/hooks/use-toast';
+import { useUpdatePedido, useVendedores, useBingos } from '@/hooks/useQueryData';
 import type { Pedido } from '@/services/realPedidoService';
-import type { Vendedor } from '@/services/realVendedorService';
-import type { Bingo } from '@/services/realBingoService';
 
 interface EditPedidoFormProps {
   pedido: Pedido;
@@ -20,38 +16,19 @@ interface EditPedidoFormProps {
 
 export function EditPedidoForm({ pedido, onPedidoUpdated }: EditPedidoFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [vendedores, setVendedores] = useState<Vendedor[]>([]);
-  const [bingos, setBingos] = useState<Bingo[]>([]);
   const [formData, setFormData] = useState({
     vendedorId: pedido.vendedorId,
     bingoId: pedido.bingoId,
     quantidade: pedido.quantidade.toString()
   });
   const { toast } = useToast();
+  const { data: vendedores = [] } = useVendedores();
+  const { data: bingos = [] } = useBingos();
+  const updatePedido = useUpdatePedido();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [vendedoresData, bingosData] = await Promise.all([
-          VendedorService.list(),
-          BingoService.list()
-        ]);
-        setVendedores(vendedoresData);
-        setBingos(bingosData);
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-      }
-    };
-
-    if (open) {
-      loadData();
-    }
-  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
       const updateData = {
@@ -60,7 +37,7 @@ export function EditPedidoForm({ pedido, onPedidoUpdated }: EditPedidoFormProps)
         quantidade: parseInt(formData.quantidade)
       };
 
-      await PedidoService.update(pedido.id, updateData);
+      await updatePedido.mutateAsync({ id: pedido.id, data: updateData });
 
       toast({
         title: "Sucesso!",
@@ -75,8 +52,6 @@ export function EditPedidoForm({ pedido, onPedidoUpdated }: EditPedidoFormProps)
         description: error instanceof Error ? error.message : "Erro ao atualizar pedido",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -155,10 +130,10 @@ export function EditPedidoForm({ pedido, onPedidoUpdated }: EditPedidoFormProps)
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={updatePedido.isPending}
               className="flex-1"
             >
-              {loading ? "Salvando..." : "Salvar"}
+              {updatePedido.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </form>

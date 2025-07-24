@@ -5,13 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
-import { PedidoService } from '@/services/realPedidoService';
-import { VendedorService } from '@/services/realVendedorService';
 import { BingoService } from '@/services/realBingoService';
 import { useToast } from '@/hooks/use-toast';
+import { useCreatePedido, useVendedores, useBingos } from '@/hooks/useQueryData';
 import type { NewPedido } from '@/services/realPedidoService';
-import type { Vendedor } from '@/services/realVendedorService';
-import type { Bingo } from '@/services/realBingoService';
 
 interface CreatePedidoFormProps {
   onPedidoCreated?: () => void;
@@ -19,38 +16,19 @@ interface CreatePedidoFormProps {
 
 export function CreatePedidoForm({ onPedidoCreated }: CreatePedidoFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [vendedores, setVendedores] = useState<Vendedor[]>([]);
-  const [bingos, setBingos] = useState<Bingo[]>([]);
   const [formData, setFormData] = useState({
     vendedorId: '',
     bingoId: '',
     quantidade: ''
   });
   const { toast } = useToast();
+  const { data: vendedores = [] } = useVendedores();
+  const { data: bingos = [] } = useBingos();
+  const createPedido = useCreatePedido();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [vendedoresData, bingosData] = await Promise.all([
-          VendedorService.list(),
-          BingoService.list()
-        ]);
-        setVendedores(vendedoresData);
-        setBingos(bingosData);
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-      }
-    };
-
-    if (open) {
-      loadData();
-    }
-  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
       const quantidade = parseInt(formData.quantidade);
@@ -92,7 +70,7 @@ export function CreatePedidoForm({ onPedidoCreated }: CreatePedidoFormProps) {
         status: 'aberto'
       };
 
-      await PedidoService.create(pedidoData);
+      await createPedido.mutateAsync(pedidoData);
 
       toast({
         title: "Sucesso!",
@@ -108,8 +86,6 @@ export function CreatePedidoForm({ onPedidoCreated }: CreatePedidoFormProps) {
         description: error instanceof Error ? error.message : "Erro ao criar pedido",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -182,10 +158,10 @@ export function CreatePedidoForm({ onPedidoCreated }: CreatePedidoFormProps) {
             </Button>
             <Button
               type="submit"
-              disabled={loading || !formData.vendedorId || !formData.bingoId}
+              disabled={createPedido.isPending || !formData.vendedorId || !formData.bingoId}
               className="flex-1"
             >
-              {loading ? "Criando..." : "Criar Pedido"}
+              {createPedido.isPending ? "Criando..." : "Criar Pedido"}
             </Button>
           </div>
         </form>

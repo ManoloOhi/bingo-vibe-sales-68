@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Edit } from 'lucide-react';
-import { BingoService } from '@/services/realBingoService';
 import { useToast } from '@/hooks/use-toast';
+import { useUpdateBingo } from '@/hooks/useQueryData';
 import type { Bingo } from '@/services/realBingoService';
 
 interface EditBingoFormProps {
@@ -15,7 +15,6 @@ interface EditBingoFormProps {
 
 export function EditBingoForm({ bingo, onBingoUpdated }: EditBingoFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: bingo.nome,
     quantidadeCartelas: bingo.quantidadeCartelas.toString(),
@@ -25,6 +24,7 @@ export function EditBingoForm({ bingo, onBingoUpdated }: EditBingoFormProps) {
     dataBingo: bingo.dataBingo instanceof Date ? bingo.dataBingo.toISOString().split('T')[0] : new Date(bingo.dataBingo).toISOString().split('T')[0]
   });
   const { toast } = useToast();
+  const updateBingo = useUpdateBingo();
 
   // Auto-update quantidade when range changes
   useEffect(() => {
@@ -39,7 +39,6 @@ export function EditBingoForm({ bingo, onBingoUpdated }: EditBingoFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
       const rangeInicio = parseInt(formData.rangeInicio);
@@ -64,7 +63,7 @@ export function EditBingoForm({ bingo, onBingoUpdated }: EditBingoFormProps) {
         dataBingo: new Date(formData.dataBingo)
       };
 
-      await BingoService.update(bingo.id, bingoData);
+      await updateBingo.mutateAsync({ id: bingo.id, data: bingoData });
 
       toast({
         title: "Sucesso!",
@@ -79,8 +78,6 @@ export function EditBingoForm({ bingo, onBingoUpdated }: EditBingoFormProps) {
         description: error instanceof Error ? error.message : "Erro ao atualizar bingo",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -179,10 +176,10 @@ export function EditBingoForm({ bingo, onBingoUpdated }: EditBingoFormProps) {
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={updateBingo.isPending}
               className="flex-1"
             >
-              {loading ? "Salvando..." : "Salvar"}
+              {updateBingo.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </form>

@@ -8,9 +8,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Plus } from 'lucide-react';
-import { BingoService } from '@/services/realBingoService';
 import { useToast } from '@/hooks/use-toast';
 import { getDefaultUserId } from '@/services/userInit';
+import { useCreateBingo } from '@/hooks/useQueryData';
 import type { NewBingo } from '@/services/realBingoService';
 
 interface CreateBingoFormProps {
@@ -19,7 +19,6 @@ interface CreateBingoFormProps {
 
 export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [date, setDate] = useState<Date>();
   const [formData, setFormData] = useState({
     nome: '',
@@ -29,6 +28,7 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
     valorCartela: ''
   });
   const { toast } = useToast();
+  const createBingo = useCreateBingo();
 
   // Auto-update quantidade when range changes
   useEffect(() => {
@@ -43,7 +43,6 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
       if (!date) {
@@ -71,7 +70,7 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
         ativo: true
       };
 
-      await BingoService.create(bingoData);
+      await createBingo.mutateAsync(bingoData);
 
       toast({
         title: "Sucesso!",
@@ -88,8 +87,6 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
         description: error instanceof Error ? error.message : "Erro ao criar bingo",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -208,10 +205,10 @@ export function CreateBingoForm({ onBingoCreated }: CreateBingoFormProps) {
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={createBingo.isPending}
               className="flex-1"
             >
-              {loading ? "Criando..." : "Criar Bingo"}
+              {createBingo.isPending ? "Criando..." : "Criar Bingo"}
             </Button>
           </div>
         </form>
