@@ -126,15 +126,16 @@ export class PedidoService {
       throw new Error(`Cartelas não disponíveis para venda: ${cartelasInvalidas.join(', ')}`);
     }
 
-    // Mover cartelas de pendentes para vendidas
+    // Remover cartelas de pendentes e retiradas, adicionar às vendidas
     const cartelasPendentes = pedido.cartelasPendentes.filter(c => !cartelas.includes(c));
+    const cartelasRetiradas = pedido.cartelasRetiradas.filter(c => !cartelas.includes(c));
     const cartelasVendidas = [...pedido.cartelasVendidas, ...cartelas];
 
     return this.update(pedidoId, {
       bingoId: pedido.bingoId,
       vendedorId: pedido.vendedorId,
       quantidade: pedido.quantidade,
-      cartelasRetiradas: pedido.cartelasRetiradas, // Preservar retiradas
+      cartelasRetiradas,
       cartelasPendentes,
       cartelasVendidas,
       cartelasDevolvidas: pedido.cartelasDevolvidas, // Preservar devolvidas
@@ -146,21 +147,21 @@ export class PedidoService {
     const pedido = await this.findById(pedidoId);
     if (!pedido) throw new Error('Pedido não encontrado');
 
-    // Verificar se todas as cartelas estão retiradas (pendentes ou vendidas) e não foram devolvidas
+    // Verificar se todas as cartelas são APENAS pendentes (não vendidas) e não foram devolvidas
     const cartelasInvalidas = cartelas.filter(c => 
-      (!pedido.cartelasPendentes.includes(c) && !pedido.cartelasVendidas.includes(c)) || 
+      !pedido.cartelasPendentes.includes(c) || 
+      pedido.cartelasVendidas.includes(c) || 
       pedido.cartelasDevolvidas.includes(c)
     );
     
     if (cartelasInvalidas.length > 0) {
-      throw new Error(`Cartelas não podem ser devolvidas: ${cartelasInvalidas.join(', ')}`);
+      throw new Error(`Cartelas não podem ser devolvidas: ${cartelasInvalidas.join(', ')}. Apenas cartelas pendentes podem ser devolvidas.`);
     }
 
-    // Remover cartelas de pendentes, vendidas e retiradas, e adicionar às devolvidas
+    // Remover cartelas de pendentes e retiradas, adicionar às devolvidas
     const cartelasPendentes = pedido.cartelasPendentes.filter(c => !cartelas.includes(c));
-    const cartelasVendidas = pedido.cartelasVendidas.filter(c => !cartelas.includes(c));
-    const cartelasDevolvidas = [...pedido.cartelasDevolvidas, ...cartelas];
     const cartelasRetiradas = pedido.cartelasRetiradas.filter(c => !cartelas.includes(c));
+    const cartelasDevolvidas = [...pedido.cartelasDevolvidas, ...cartelas];
 
     return this.update(pedidoId, {
       bingoId: pedido.bingoId,
@@ -168,7 +169,7 @@ export class PedidoService {
       quantidade: pedido.quantidade,
       cartelasRetiradas,
       cartelasPendentes,
-      cartelasVendidas,
+      cartelasVendidas: pedido.cartelasVendidas, // Preservar vendidas
       cartelasDevolvidas,
       status: pedido.status
     });
@@ -177,10 +178,22 @@ export class PedidoService {
   static async verificarDisponibilidadeCartelas(bingoId: string, cartelas: number[]): Promise<boolean> {
     try {
       const pedidosExistentes = await this.findByBingo(bingoId);
-      const cartelasJaRetiradas = pedidosExistentes.flatMap(p => p.cartelasRetiradas);
       
-      const duplicadas = cartelas.filter(c => cartelasJaRetiradas.includes(c));
-      return duplicadas.length === 0;
+      // Coletar cartelas ocupadas (retiradas e vendidas, mas não devolvidas)
+      const cartelasOcupadas = new Set<number>();
+      
+      for (const pedido of pedidosExistentes) {
+        // Cartelas retiradas (pendentes de venda)
+        pedido.cartelasRetiradas.forEach(c => cartelasOcupadas.add(c));
+        
+        // Cartelas vendidas (ocupação permanente)
+        pedido.cartelasVendidas.forEach(c => cartelasOcupadas.add(c));
+        
+        // Cartelas devolvidas voltam ao estoque - não incluir como ocupadas
+      }
+      
+      // Verificar se alguma cartela solicitada já está ocupada
+      return !cartelas.some(cartela => cartelasOcupadas.has(cartela));
     } catch {
       return false;
     }
