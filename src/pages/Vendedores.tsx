@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Phone, Mail, Package, Loader2 } from 'lucide-react';
 import { CreateVendedorForm } from '@/components/forms/CreateVendedorForm';
 import { EditVendedorForm } from '@/components/forms/EditVendedorForm';
+import { DeleteVendedorForm } from '@/components/forms/DeleteVendedorForm';
 import type { Vendedor } from '@/services/realVendedorService';
 import { useVendedores, usePedidosByVendedor } from '@/hooks/useQueryData';
 
@@ -101,7 +102,10 @@ const VendedorCard = ({ vendedor }: { vendedor: Vendedor }) => {
       
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <VendedorPedidos vendedorId={vendedor.id} />
-        <EditVendedorForm vendedor={vendedor} />
+        <div className="flex gap-2">
+          <EditVendedorForm vendedor={vendedor} />
+          <DeleteVendedorForm vendedor={vendedor} pedidosAtivos={pedidosAbertos} />
+        </div>
       </div>
     </Card>
   );

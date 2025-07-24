@@ -53,10 +53,11 @@ export class VendedorService {
 
   static async delete(id: string): Promise<boolean> {
     try {
-      await this.update(id, { ativo: false });
+      await ApiService.deleteVendedor(id);
       return true;
     } catch (error) {
-      return false;
+      console.error('Erro ao deletar vendedor:', error);
+      throw error;
     }
   }
 

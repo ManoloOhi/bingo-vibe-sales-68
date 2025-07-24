@@ -118,6 +118,17 @@ export const useUpdateVendedor = () => {
   });
 };
 
+export const useDeleteVendedor = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => VendedorService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
+    },
+  });
+};
+
 // ========================================
 // 📦 PEDIDOS HOOKS
 // ========================================

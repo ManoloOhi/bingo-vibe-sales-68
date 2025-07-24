@@ -96,6 +96,12 @@ class ApiService {
     });
   }
 
+  static async deleteVendedor(id: string) {
+    return this.request(`/vendedores/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // ========================================
   // 📦 PEDIDOS
   // ========================================
