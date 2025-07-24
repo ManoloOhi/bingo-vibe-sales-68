@@ -340,24 +340,35 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       
       // Calcular cartelas ocupadas por TODOS os vendedores
       const cartelasOcupadas = new Set<number>();
+      const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
       pedidosDoBingo.forEach(pedido => {
-        // Cartelas retiradas (ocupadas)
+        // Cartelas retiradas (ocupadas temporariamente)
         pedido.cartelasRetiradas.forEach(cartela => {
           cartelasOcupadas.add(cartela);
         });
         
-        // Cartelas devolvidas (liberam as ocupadas)
+        // Cartelas vendidas (ocupadas permanentemente)
+        pedido.cartelasVendidas.forEach(cartela => {
+          cartelasVendidas.add(cartela);
+        });
+        
+        // Cartelas devolvidas (liberam apenas as retiradas, não as vendidas)
         pedido.cartelasDevolvidas.forEach(cartela => {
           cartelasDevolvidas.add(cartela);
         });
       });
       
-      // Cartelas disponíveis = Todas - (Ocupadas - Devolvidas)
+      // Cartelas disponíveis = Todas - (Ocupadas - Devolvidas) - Vendidas
       const disponiveis = Array.from(todasCartelas).filter(cartela => {
         const estaOcupada = cartelasOcupadas.has(cartela);
+        const foiVendida = cartelasVendidas.has(cartela);
         const foiDevolvida = cartelasDevolvidas.has(cartela);
+        
+        // Não disponível se foi vendida (permanente)
+        if (foiVendida) return false;
+        
         // Disponível se nunca foi retirada OU se foi devolvida
         return !estaOcupada || foiDevolvida;
       });
@@ -369,17 +380,21 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       if (!bingo || !pedidosDoBingo) return [];
       
       const cartelasOcupadas = new Set<number>();
+      const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
       pedidosDoBingo.forEach(pedido => {
         pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+        pedido.cartelasVendidas.forEach(cartela => cartelasVendidas.add(cartela));
         pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
       });
       
-      // Cartelas indisponíveis = ocupadas - devolvidas
-      const indisponiveis = Array.from(cartelasOcupadas).filter(cartela => 
+      // Cartelas indisponíveis = (ocupadas - devolvidas) + vendidas
+      const retiradas = Array.from(cartelasOcupadas).filter(cartela => 
         !cartelasDevolvidas.has(cartela)
-      ).sort((a, b) => a - b);
+      );
+      const vendidas = Array.from(cartelasVendidas);
+      const indisponiveis = [...new Set([...retiradas, ...vendidas])].sort((a, b) => a - b);
       
       return indisponiveis;
     })(),
@@ -388,16 +403,21 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       if (!bingo || !pedidosDoBingo) return [];
       
       const cartelasOcupadas = new Set<number>();
+      const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
       pedidosDoBingo.forEach(pedido => {
         pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+        pedido.cartelasVendidas.forEach(cartela => cartelasVendidas.add(cartela));
         pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
       });
       
-      const indisponiveis = Array.from(cartelasOcupadas).filter(cartela => 
+      // Cartelas indisponíveis = (ocupadas - devolvidas) + vendidas
+      const retiradas = Array.from(cartelasOcupadas).filter(cartela => 
         !cartelasDevolvidas.has(cartela)
-      ).sort((a, b) => a - b);
+      );
+      const vendidas = Array.from(cartelasVendidas);
+      const indisponiveis = [...new Set([...retiradas, ...vendidas])].sort((a, b) => a - b);
       
       if (indisponiveis.length === 0) return [];
       
@@ -440,23 +460,34 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       }
       
       const cartelasOcupadas = new Set<number>();
+      const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
       pedidosDoBingo.forEach(pedido => {
         pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+        pedido.cartelasVendidas.forEach(cartela => cartelasVendidas.add(cartela));
         pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
       });
       
       const cartelasDisponiveis = rangeCartelas.filter(cartela => {
         const estaOcupada = cartelasOcupadas.has(cartela);
+        const foiVendida = cartelasVendidas.has(cartela);
         const foiDevolvida = cartelasDevolvidas.has(cartela);
+        
+        // Não disponível se foi vendida (permanente)
+        if (foiVendida) return false;
+        
+        // Disponível se nunca foi retirada OU se foi devolvida
         return !estaOcupada || foiDevolvida;
       });
       
       const conflitos = rangeCartelas.filter(cartela => {
         const estaOcupada = cartelasOcupadas.has(cartela);
+        const foiVendida = cartelasVendidas.has(cartela);
         const foiDevolvida = cartelasDevolvidas.has(cartela);
-        return estaOcupada && !foiDevolvida;
+        
+        // Conflito se foi vendida OU se está ocupada e não foi devolvida
+        return foiVendida || (estaOcupada && !foiDevolvida);
       });
       
       return {
