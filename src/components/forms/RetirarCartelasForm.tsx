@@ -234,7 +234,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
           Retirar Cartelas
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-w-[95vw]">
+      <DialogContent className="sm:max-w-2xl max-w-[85vw] p-3">
         <DialogHeader>
           <DialogTitle>Retirar Cartelas</DialogTitle>
         </DialogHeader>

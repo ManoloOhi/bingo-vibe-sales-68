@@ -113,7 +113,7 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
           Vender Cartelas
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-w-[95vw]">
+      <DialogContent className="sm:max-w-2xl max-w-[85vw] p-3">
         <DialogHeader>
           <DialogTitle>Vender Cartelas</DialogTitle>
         </DialogHeader>
