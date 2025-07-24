@@ -156,10 +156,6 @@ class ApiService {
     return this.request(`/bingos/${id}/cartelas/vendidas`);
   }
 
-  static async getRelatorioCompleto() {
-    return this.request('/relatorio/completo');
-  }
-
   // ========================================
   // 🔐 AUTENTICAÇÃO
   // ========================================
