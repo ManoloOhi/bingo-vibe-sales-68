@@ -123,46 +123,6 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
     setCartelaIndividual('');
   };
 
-  const adicionarCartelasAleatorias = (quantidade: number) => {
-    if (!cartelasDisponiveis || cartelasDisponiveis.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Não há cartelas disponíveis",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Filtrar cartelas que ainda não foram selecionadas
-    const cartelasNaoSelecionadas = cartelasDisponiveis.filter(
-      cartela => !cartelasSelecionadas.includes(cartela)
-    );
-
-    if (cartelasNaoSelecionadas.length === 0) {
-      toast({
-        title: "Aviso",
-        description: "Todas as cartelas disponíveis já estão selecionadas",
-        variant: "default"
-      });
-      return;
-    }
-
-    const quantidadeParaAdicionar = Math.min(quantidade, cartelasNaoSelecionadas.length);
-    
-    // Embaralhar e pegar as primeiras N cartelas
-    const cartelasAleatorias = [...cartelasNaoSelecionadas]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, quantidadeParaAdicionar);
-
-    setCartelasSelecionadas(prev => [...prev, ...cartelasAleatorias].sort((a, b) => a - b));
-    
-    toast({
-      title: "Cartelas adicionadas",
-      description: `${quantidadeParaAdicionar} cartela(s) aleatória(s) adicionada(s)`,
-      variant: "default"
-    });
-  };
-
   const removerCartela = (cartela: number) => {
     setCartelasSelecionadas(prev => prev.filter(c => c !== cartela));
   };
@@ -319,49 +279,6 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
                 disabled={!cartelaIndividual}
               >
                 Adicionar
-              </Button>
-            </div>
-          </div>
-
-          {/* Seleção Aleatória */}
-          <div className="space-y-3">
-            <Label>Adicionar Cartelas Aleatórias</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => adicionarCartelasAleatorias(5)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
-              >
-                +5 Aleatórias
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => adicionarCartelasAleatorias(10)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
-              >
-                +10 Aleatórias
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => adicionarCartelasAleatorias(20)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
-              >
-                +20 Aleatórias
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setCartelasSelecionadas([])}
-                disabled={cartelasSelecionadas.length === 0}
-              >
-                Limpar Todas
               </Button>
             </div>
           </div>
