@@ -26,6 +26,20 @@ export function DownloadReportButton() {
     });
   };
 
+  const cleanText = (text: string) => {
+    // Remove emojis e caracteres especiais que podem causar problemas no PDF
+    return text
+      .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+      .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Misc Symbols and Pictographs
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport and Map
+      .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // Regional country flags
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Misc symbols
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+      .replace(/🚨|⚠️|📊|🎯/g, '')            // Specific emojis
+      .replace(/[^\x00-\x7F]/g, '')           // Remove non-ASCII characters
+      .trim();
+  };
+
   const generatePDF = (data: any) => {
     const pdf = new jsPDF();
     let yPosition = 20;
@@ -200,14 +214,17 @@ export function DownloadReportButton() {
       checkPageBreak(data.observacoes.alertas.length + 3);
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('ALERTAS E OBSERVAÇÕES', 20, yPosition);
+      pdf.text('ALERTAS E OBSERVACOES', 20, yPosition);
       yPosition += 10;
 
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
       data.observacoes.alertas.forEach((alerta: string) => {
-        pdf.text(`• ${alerta}`, 20, yPosition);
-        yPosition += lineHeight;
+        const cleanedAlert = cleanText(alerta);
+        if (cleanedAlert.length > 0) {
+          pdf.text(`• ${cleanedAlert}`, 20, yPosition);
+          yPosition += lineHeight;
+        }
       });
     }
 
