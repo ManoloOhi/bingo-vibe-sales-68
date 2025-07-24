@@ -100,13 +100,19 @@ export class PedidoService {
       throw new Error(`Cartelas já retiradas por este vendedor: ${cartelasJaRetiradas.join(', ')}`);
     }
 
-    // Atualizar pedido apenas com cartelas válidas
+    // Atualizar pedido com TODOS os dados para evitar sobrescrita
     const cartelasRetiradas = [...pedido.cartelasRetiradas, ...cartelas];
     const cartelasPendentes = [...pedido.cartelasPendentes, ...cartelas];
 
     return this.update(pedidoId, {
+      bingoId: pedido.bingoId,
+      vendedorId: pedido.vendedorId,
+      quantidade: pedido.quantidade,
       cartelasRetiradas,
-      cartelasPendentes
+      cartelasPendentes,
+      cartelasVendidas: pedido.cartelasVendidas, // Preservar vendidas
+      cartelasDevolvidas: pedido.cartelasDevolvidas, // Preservar devolvidas
+      status: pedido.status
     });
   }
 
@@ -125,8 +131,14 @@ export class PedidoService {
     const cartelasVendidas = [...pedido.cartelasVendidas, ...cartelas];
 
     return this.update(pedidoId, {
+      bingoId: pedido.bingoId,
+      vendedorId: pedido.vendedorId,
+      quantidade: pedido.quantidade,
+      cartelasRetiradas: pedido.cartelasRetiradas, // Preservar retiradas
       cartelasPendentes,
-      cartelasVendidas
+      cartelasVendidas,
+      cartelasDevolvidas: pedido.cartelasDevolvidas, // Preservar devolvidas
+      status: pedido.status
     });
   }
 
@@ -149,9 +161,14 @@ export class PedidoService {
     const cartelasRetiradas = pedido.cartelasRetiradas.filter(c => !cartelas.includes(c));
 
     return this.update(pedidoId, {
+      bingoId: pedido.bingoId,
+      vendedorId: pedido.vendedorId,
+      quantidade: pedido.quantidade,
+      cartelasRetiradas,
       cartelasPendentes,
+      cartelasVendidas: pedido.cartelasVendidas, // Preservar vendidas
       cartelasDevolvidas,
-      cartelasRetiradas
+      status: pedido.status
     });
   }
 
