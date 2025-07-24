@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { TrendingUp, DollarSign, Package, Users, Loader2, Eye } from 'lucide-react';
 import { useMemo } from 'react';
 import { useBingos, useVendedores, usePedidos } from '@/hooks/useQueryData';
+import { DownloadReportButton } from '@/components/forms/DownloadReportButton';
 
 export default function Relatorios() {
   const { data: vendedores = [], isLoading: loadingVendedores } = useVendedores();
@@ -204,6 +205,9 @@ export default function Relatorios() {
   return (
     <PageLayout title="Relatórios" subtitle="Análise de vendas">
       <div className="space-y-4">
+        <div className="flex justify-end">
+          <DownloadReportButton />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Dialog>
             <DialogTrigger asChild>

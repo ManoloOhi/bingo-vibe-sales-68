@@ -175,6 +175,13 @@ class ApiService {
   static async getCurrentUser() {
     return this.request('/auth/me');
   }
+
+  // ========================================
+  // 📊 RELATÓRIO COMPLETO
+  // ========================================
+  static async getRelatorioCompleto() {
+    return this.request('/relatorio/completo');
+  }
 }
 
 export { ApiService };
