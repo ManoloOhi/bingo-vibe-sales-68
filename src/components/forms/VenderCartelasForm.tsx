@@ -122,7 +122,7 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
           {/* Status do Estoque */}
           <div className="bg-muted/50 border p-4 rounded-lg">
             <div className="text-sm font-medium mb-2">Status do Estoque</div>
-            <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground">Disponível: </span>
                 <span className="font-medium">{estoque?.estoque || 0}</span>
@@ -179,7 +179,7 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button
               type="button"
               variant="outline"

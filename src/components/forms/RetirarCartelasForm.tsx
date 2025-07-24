@@ -245,7 +245,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
             <div className="text-sm font-medium mb-2">
               Status do Estoque
             </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground">Disponível: </span>
                 <span className={`font-medium ${(estoque?.estoque || 0) === 0 ? 'text-destructive' : 'text-success'}`}>
@@ -280,7 +280,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
 
           <div className="space-y-3">
             <Label>Selecionar Range</Label>
-            <div className="flex gap-2 items-end">
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
               <div className="flex-1">
                 <Input
                   type="number"
@@ -346,7 +346,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
           {/* Seleção Individual */}
           <div className="space-y-3">
             <Label>Adicionar Cartela Individual</Label>
-            <div className="flex gap-2 items-end">
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
               <div className="flex-1">
                 <Input
                   type="number"
@@ -369,7 +369,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
           {/* Seleção Aleatória */}
           <div className="space-y-3">
             <Label>Adicionar Cartelas Aleatórias</Label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 type="button"
                 variant="outline"
