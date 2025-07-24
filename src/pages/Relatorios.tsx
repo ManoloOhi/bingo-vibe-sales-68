@@ -198,6 +198,9 @@ export default function Relatorios() {
                 <DialogTitle>Detalhes do Total Recebido</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Soma das cartelas vendidas multiplicadas pelo valor da cartela de cada bingo.
+                </p>
                 <div className="space-y-3">
                   {vendasDetalhes.length === 0 ? (
                     <p className="text-center text-muted-foreground py-4">Nenhuma venda registrada ainda</p>
@@ -241,6 +244,9 @@ export default function Relatorios() {
                 <DialogTitle>Detalhes do Valor Esperado</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Soma do total de cartelas de cada bingo multiplicado pelo valor da cartela.
+                </p>
                 <div className="space-y-3">
                   {bingosDetalhes.length === 0 ? (
                     <p className="text-center text-muted-foreground py-4">Nenhum bingo cadastrado ainda</p>
