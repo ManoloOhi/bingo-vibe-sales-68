@@ -19,9 +19,9 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
   const [ultimaCartelaSelecionada, setUltimaCartelaSelecionada] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Cartelas disponíveis para devolução = retiradas - vendidas - já devolvidas
-  const cartelasDisponiveis = pedido.cartelasRetiradas.filter(c => 
-    !pedido.cartelasVendidas.includes(c) && !pedido.cartelasDevolvidas.includes(c)
+  // Cartelas disponíveis para devolução = vendidas - já devolvidas
+  const cartelasDisponiveis = pedido.cartelasVendidas.filter(c => 
+    !pedido.cartelasDevolvidas.includes(c)
   );
 
   const getCartelasNoRange = (inicio: number, fim: number): number[] => {
@@ -126,7 +126,7 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
 
           <div className="space-y-2">
             <div className="text-sm font-medium">
-              Cartelas Não Vendidas 
+              Cartelas Vendidas 
               <span className="text-xs text-muted-foreground ml-2">(Ctrl+click para seleção em range)</span>
             </div>
             <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto border rounded p-3">
