@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BingoService, Bingo } from '@/services/realBingoService';
 import { VendedorService, Vendedor } from '@/services/realVendedorService';
 import { PedidoService, Pedido } from '@/services/realPedidoService';
+import { ApiService } from '@/services/apiService';
 import { debugCache } from '@/utils/cacheUtils';
 
 // ========================================
@@ -497,6 +498,44 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       };
     }
   };
+};
+
+// ========================================
+// 📊 DASHBOARD & RELATÓRIOS HOOKS
+// ========================================
+export const useDashboardStats = () => {
+  return useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: () => ApiService.getDashboardStats(),
+    staleTime: 1 * 60 * 1000, // 1 minuto
+  });
+};
+
+export const useBingoRelatorio = (bingoId: string) => {
+  return useQuery({
+    queryKey: ['bingo', bingoId, 'relatorio'],
+    queryFn: () => ApiService.getBingoRelatorio(bingoId),
+    enabled: !!bingoId,
+    staleTime: 2 * 60 * 1000, // 2 minutos
+  });
+};
+
+export const useBingoCartelasDisponiveis = (bingoId: string) => {
+  return useQuery({
+    queryKey: ['bingo', bingoId, 'cartelas', 'disponiveis'],
+    queryFn: () => ApiService.getBingoCartelasDisponiveis(bingoId),
+    enabled: !!bingoId,
+    staleTime: 30 * 1000, // 30 segundos
+  });
+};
+
+export const useBingoCartelasVendidas = (bingoId: string) => {
+  return useQuery({
+    queryKey: ['bingo', bingoId, 'cartelas', 'vendidas'],
+    queryFn: () => ApiService.getBingoCartelasVendidas(bingoId),
+    enabled: !!bingoId,
+    staleTime: 1 * 60 * 1000, // 1 minuto
+  });
 };
 
 // ========================================

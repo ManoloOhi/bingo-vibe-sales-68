@@ -2,13 +2,9 @@ import { PageLayout } from '@/components/Layout/PageLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Target, Users, TrendingUp, AlertCircle } from 'lucide-react';
+import { Plus, Target, Users, TrendingUp, AlertCircle, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { BingoService } from '@/services/realBingoService';
-import { VendedorService } from '@/services/realVendedorService';
-import { PedidoService } from '@/services/realPedidoService';
-import { ApiService } from '@/services/apiService';
+import { useDashboardStats, useBingos, useVendedores, usePedidos } from '@/hooks/useQueryData';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -56,79 +52,36 @@ const getUltimasAtividades = (pedidos: any[], vendedores: { [key: string]: any }
 };
 
 const Index = () => {
-  const [stats, setStats] = useState({
-    bingosAtivos: 0,
-    vendedores: 0,
-    pedidosPendentes: 0,
-    cartelasVendidas: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [pedidos, setPedidos] = useState<any[]>([]);
-  const [vendedores, setVendedores] = useState<{ [key: string]: any }>({});
-  const [bingos, setBingos] = useState<{ [key: string]: any }>({});
+  const { data: dashboardStats, isLoading: loadingStats } = useDashboardStats();
+  const { data: bingos, isLoading: loadingBingos } = useBingos();
+  const { data: vendedores, isLoading: loadingVendedores } = useVendedores();
+  const { data: pedidos, isLoading: loadingPedidos } = usePedidos();
 
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        console.log('Index: Testando conexão com API...');
-        
-        // Testar conexão com API
-        await ApiService.healthCheck();
+  const loading = loadingStats || loadingBingos || loadingVendedores || loadingPedidos;
 
-        console.log('Index: Carregando dados dos serviços...');
-        const [bingosData, vendedoresData, pedidosData] = await Promise.all([
-          BingoService.list(),
-          VendedorService.list(),
-          PedidoService.list()
-        ]);
+  // Criar mapas para atividades recentes
+  const vendedoresMap = vendedores?.reduce((acc: any, v: any) => {
+    acc[v.id] = v;
+    return acc;
+  }, {}) || {};
 
-        console.log('Index: Dados carregados:', {
-          bingos: bingosData.length,
-          vendedores: vendedoresData.length,
-          pedidos: pedidosData.length
-        });
-
-        // Criar maps para facilitar acesso
-        const vendedoresMap = vendedoresData.reduce((acc: any, vendedor: any) => {
-          acc[vendedor.id] = vendedor;
-          return acc;
-        }, {});
-
-        const bingosMap = bingosData.reduce((acc: any, bingo: any) => {
-          acc[bingo.id] = bingo;
-          return acc;
-        }, {});
-
-        const pedidosPendentes = pedidosData.filter((p: any) => p.status === 'aberto').length;
-        const cartelasVendidas = pedidosData.reduce((total: number, p: any) => total + p.cartelasVendidas.length, 0);
-
-        const newStats = {
-          bingosAtivos: bingosData.length,
-          vendedores: vendedoresData.length,
-          pedidosPendentes,
-          cartelasVendidas
-        };
-
-        console.log('Index: Stats calculadas:', newStats);
-        setStats(newStats);
-        setPedidos(pedidosData);
-        setVendedores(vendedoresMap);
-        setBingos(bingosMap);
-      } catch (error) {
-        console.error('Erro ao carregar estatísticas:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStats();
-  }, []);
+  const bingosMap = bingos?.reduce((acc: any, b: any) => {
+    acc[b.id] = b;
+    return acc;
+  }, {}) || {};
 
   if (loading) {
     return (
       <PageLayout title="Bingo Vibe Sales" subtitle="Painel de controle">
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-3">
+            <Card className="p-4 text-center shadow-[var(--shadow-card)]">
+              <div className="animate-pulse">
+                <div className="h-6 w-6 bg-muted rounded mx-auto mb-2"></div>
+                <div className="h-4 bg-muted rounded mb-2"></div>
+                <div className="h-8 bg-muted rounded"></div>
+              </div>
+            </Card>
             <Card className="p-4 text-center shadow-[var(--shadow-card)]">
               <div className="animate-pulse">
                 <div className="h-6 w-6 bg-muted rounded mx-auto mb-2"></div>
@@ -157,15 +110,30 @@ const Index = () => {
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
             <Target size={24} className="text-primary mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Bingos Ativos</p>
-            <p className="text-2xl font-bold text-foreground">{stats.bingosAtivos}</p>
+            <p className="text-2xl font-bold text-foreground">{dashboardStats?.bingosAtivos || 0}</p>
+            <p className="text-xs text-muted-foreground">
+              de {dashboardStats?.totalBingos || 0} total
+            </p>
           </Card>
           
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
             <Users size={24} className="text-success mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Vendedores</p>
-            <p className="text-2xl font-bold text-foreground">{stats.vendedores}</p>
+            <p className="text-sm text-muted-foreground">Vendedores Ativos</p>
+            <p className="text-2xl font-bold text-foreground">{dashboardStats?.vendedoresAtivos || 0}</p>
+            <p className="text-xs text-muted-foreground">
+              de {dashboardStats?.totalVendedores || 0} total
+            </p>
           </Card>
         </div>
+
+        {/* Valor Total Arrecadado */}
+        <Card className="p-4 text-center shadow-[var(--shadow-card)]">
+          <DollarSign size={24} className="text-green-600 mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Valor Arrecadado</p>
+          <p className="text-3xl font-bold text-green-600">
+            R$ {parseFloat(dashboardStats?.valorTotalArrecadado || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </p>
+        </Card>
 
         {/* Ações Rápidas */}
         <Card className="p-4 shadow-[var(--shadow-card)]">
@@ -193,17 +161,17 @@ const Index = () => {
             <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg border border-success/20">
               <div className="flex items-center gap-3">
                 <TrendingUp size={16} className="text-success" />
-                <span className="text-sm font-medium">Cartelas Vendidas</span>
+                <span className="text-sm font-medium">Pedidos Abertos</span>
               </div>
-              <Badge className="bg-success text-success-foreground">+{stats.cartelasVendidas} cartelas</Badge>
+              <Badge className="bg-success text-success-foreground">{dashboardStats?.pedidosAbertos || 0} abertos</Badge>
             </div>
             
             <div className="flex items-center justify-between p-3 bg-warning/10 rounded-lg border border-warning/20">
               <div className="flex items-center gap-3">
                 <AlertCircle size={16} className="text-warning" />
-                <span className="text-sm font-medium">Pedidos Pendentes</span>
+                <span className="text-sm font-medium">Total Pedidos</span>
               </div>
-              <Badge className="bg-warning text-warning-foreground">{stats.pedidosPendentes} pendentes</Badge>
+              <Badge className="bg-warning text-warning-foreground">{dashboardStats?.totalPedidos || 0} total</Badge>
             </div>
           </div>
         </Card>
@@ -212,7 +180,7 @@ const Index = () => {
         <Card className="p-4 shadow-[var(--shadow-card)]">
           <h3 className="font-semibold text-foreground mb-3">Últimas Atividades</h3>
           <div className="space-y-2 text-sm">
-            {getUltimasAtividades(pedidos, vendedores, bingos).map((atividade, index) => (
+            {getUltimasAtividades(pedidos || [], vendedoresMap, bingosMap).map((atividade, index) => (
               <div key={index} className="flex justify-between items-center py-2">
                 <span className="text-muted-foreground">{atividade.texto}</span>
                 <span className="text-xs text-muted-foreground">{atividade.tempo}</span>

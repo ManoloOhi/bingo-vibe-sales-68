@@ -130,6 +130,25 @@ class ApiService {
   }
 
   // ========================================
+  // 📊 DASHBOARD & RELATÓRIOS
+  // ========================================
+  static async getDashboardStats() {
+    return this.request('/dashboard/stats');
+  }
+
+  static async getBingoRelatorio(id: string) {
+    return this.request(`/bingos/${id}/relatorio`);
+  }
+
+  static async getBingoCartelasDisponiveis(id: string) {
+    return this.request(`/bingos/${id}/cartelas/disponiveis`);
+  }
+
+  static async getBingoCartelasVendidas(id: string) {
+    return this.request(`/bingos/${id}/cartelas/vendidas`);
+  }
+
+  // ========================================
   // 🔐 AUTENTICAÇÃO
   // ========================================
   static async login(email: string, senha: string) {
