@@ -9,6 +9,7 @@ import { DeleteVendedorForm } from '@/components/forms/DeleteVendedorForm';
 import { CacheDebug } from '@/components/ui/cache-debug';
 import type { Vendedor } from '@/services/realVendedorService';
 import { useVendedores, usePedidosByVendedor } from '@/hooks/useQueryData';
+import { useQueryPersister } from '@/hooks/useQueryPersister';
 
 // Hook para contar pedidos ativos de um vendedor
 const VendedorPedidos = ({ vendedorId }: { vendedorId: string }) => {
@@ -25,6 +26,9 @@ const VendedorPedidos = ({ vendedorId }: { vendedorId: string }) => {
 
 export default function Vendedores() {
   const { data: vendedores = [], isLoading: loading } = useVendedores();
+  
+  // Ativar persistência automática
+  useQueryPersister();
 
   if (loading) {
     return (

@@ -24,14 +24,9 @@ const queryClient = new QueryClient({
     },
     mutations: {
       onSuccess: () => {
+        console.log('🔄 Mutation success - invalidating queries');
         // Invalidar todos os dados após qualquer mutação
         queryClient.invalidateQueries();
-        // Salvar estado atual no sessionStorage para debug
-        const cacheState = {
-          timestamp: Date.now(),
-          queries: queryClient.getQueryCache().getAll().length
-        };
-        sessionStorage.setItem('BINGO_CACHE_INFO', JSON.stringify(cacheState));
       },
     },
   },
@@ -43,18 +38,7 @@ const sessionStoragePersister = createSyncStoragePersister({
   key: 'BINGO_CACHE_KEY',
 });
 
-// Restaurar cache do sessionStorage na inicialização
-const restoreCache = async () => {
-  try {
-    await sessionStoragePersister.restoreClient();
-    console.log('📦 Cache restaurado do sessionStorage');
-  } catch (error) {
-    console.log('⚠️ Não foi possível restaurar cache:', error);
-  }
-};
-
-// Executar restauração
-restoreCache();
+console.log('🚀 React Query configurado com persistência sessionStorage');
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

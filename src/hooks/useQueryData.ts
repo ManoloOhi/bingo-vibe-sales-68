@@ -24,9 +24,12 @@ export const QUERY_KEYS = {
 export const useBingos = () => {
   return useQuery({
     queryKey: QUERY_KEYS.bingos,
-    queryFn: BingoService.list,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    queryFn: () => {
+      console.log('🎯 Executando query: bingos');
+      return BingoService.list();
+    },
+    staleTime: 0,
+    gcTime: 1000 * 60 * 30,
   });
 };
 
@@ -88,9 +91,12 @@ export const useDeleteBingo = () => {
 export const useVendedores = () => {
   return useQuery({
     queryKey: QUERY_KEYS.vendedores,
-    queryFn: VendedorService.list,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    queryFn: () => {
+      console.log('👥 Executando query: vendedores');
+      return VendedorService.list();
+    },
+    staleTime: 0,
+    gcTime: 1000 * 60 * 30,
   });
 };
 
@@ -150,9 +156,12 @@ export const useDeleteVendedor = () => {
 export const usePedidos = () => {
   return useQuery({
     queryKey: QUERY_KEYS.pedidos,
-    queryFn: PedidoService.list,
-    staleTime: 2 * 60 * 1000, // 2 minutos (dados mais dinâmicos)
-    gcTime: 5 * 60 * 1000,
+    queryFn: () => {
+      console.log('📦 Executando query: pedidos');
+      return PedidoService.list();
+    },
+    staleTime: 0,
+    gcTime: 1000 * 60 * 30,
   });
 };
 
@@ -168,9 +177,13 @@ export const usePedido = (id: string) => {
 export const usePedidosByVendedor = (vendedorId: string) => {
   return useQuery({
     queryKey: QUERY_KEYS.pedidosByVendedor(vendedorId),
-    queryFn: () => PedidoService.findByVendedor(vendedorId),
+    queryFn: () => {
+      console.log(`📦 Executando query: pedidosByVendedor(${vendedorId})`);
+      return PedidoService.findByVendedor(vendedorId);
+    },
     enabled: !!vendedorId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 30,
   });
 };
 
