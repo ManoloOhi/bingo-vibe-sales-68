@@ -73,17 +73,17 @@ export class PedidoService {
     // VALIDAÇÃO: Verificar se as cartelas estão realmente disponíveis
     const todosPedidosDoBingo = await this.findByBingo(pedido.bingoId);
     const cartelasOcupadas = new Set<number>();
-    const cartelasDevolvidas = new Set<number>();
+    const cartelasJaDevolvidas = new Set<number>();
     
     todosPedidosDoBingo.forEach(p => {
       p.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
-      p.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
+      p.cartelasDevolvidas.forEach(cartela => cartelasJaDevolvidas.add(cartela));
     });
     
     // Verificar se alguma cartela está ocupada e não foi devolvida
     const cartelasIndisponiveis = cartelas.filter(cartela => {
       const estaOcupada = cartelasOcupadas.has(cartela);  
-      const foiDevolvida = cartelasDevolvidas.has(cartela);
+      const foiDevolvida = cartelasJaDevolvidas.has(cartela);
       return estaOcupada && !foiDevolvida;
     });
     
@@ -103,6 +103,9 @@ export class PedidoService {
     // Atualizar pedido com TODOS os dados para evitar sobrescrita
     const cartelasRetiradas = [...pedido.cartelasRetiradas, ...cartelas];
     const cartelasPendentes = [...pedido.cartelasPendentes, ...cartelas];
+    
+    // Remover cartelas re-retiradas de devolvidas (se existirem)
+    const cartelasDevolvidas = pedido.cartelasDevolvidas.filter(c => !cartelas.includes(c));
 
     return this.update(pedidoId, {
       bingoId: pedido.bingoId,
@@ -111,7 +114,7 @@ export class PedidoService {
       cartelasRetiradas,
       cartelasPendentes,
       cartelasVendidas: pedido.cartelasVendidas, // Preservar vendidas
-      cartelasDevolvidas: pedido.cartelasDevolvidas, // Preservar devolvidas
+      cartelasDevolvidas, // Remover cartelas re-retiradas
       status: pedido.status
     });
   }
