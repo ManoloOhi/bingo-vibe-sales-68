@@ -2,98 +2,78 @@ import { PageLayout } from '@/components/Layout/PageLayout';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { TrendingUp, DollarSign, Package, Users, Loader2, Eye } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { VendedorService } from '@/services/realVendedorService';
-import { PedidoService } from '@/services/realPedidoService';
-import { BingoService } from '@/services/realBingoService';
+import { useMemo } from 'react';
+import { useBingos, useVendedores, usePedidos } from '@/hooks/useQueryData';
 
 export default function Relatorios() {
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalRecebido: 0,
-    valorEsperado: 0,
-    cartelasVendidas: 0,
-    vendedoresAtivos: 0,
-    taxaConversao: 0
-  });
-  const [vendedoresStats, setVendedoresStats] = useState<Array<{
-    nome: string;
-    vendas: number;
-    percentual: number;
-  }>>([]);
-  const [bingosDetalhes, setBingosDetalhes] = useState<Array<{
-    nome: string;
-    valorEsperado: number;
-    quantidadeCartelas: number;
-  }>>([]);
-  const [vendasDetalhes, setVendasDetalhes] = useState<Array<{
-    nome: string;
-    totalRecebido: number;
-    cartelasVendidas: number;
-  }>>([]);
-  const [cartelasVendidasDetalhes, setCartelasVendidasDetalhes] = useState<Array<{
-    nome: string;
-    cartelasVendidas: number;
-  }>>([]);
-  const [vendedoresDetalhes, setVendedoresDetalhes] = useState<Array<{
-    nome: string;
-    bingos: string[];
-    status: string;
-  }>>([]);
+  const { data: vendedores = [], isLoading: loadingVendedores } = useVendedores();
+  const { data: pedidos = [], isLoading: loadingPedidos } = usePedidos();
+  const { data: bingos = [], isLoading: loadingBingos } = useBingos();
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+  const loading = loadingVendedores || loadingPedidos || loadingBingos;
 
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const [vendedores, pedidos, bingos] = await Promise.all([
-          VendedorService.list(),
-          PedidoService.list(),
-          BingoService.list()
-        ]);
+  const {
+    stats,
+    vendedoresStats,
+    bingosDetalhes,
+    vendasDetalhes,
+    cartelasVendidasDetalhes,
+    vendedoresDetalhes
+  } = useMemo(() => {
+    if (loading || !vendedores.length || !pedidos.length || !bingos.length) {
+      return {
+        stats: {
+          totalRecebido: 0,
+          valorEsperado: 0,
+          cartelasVendidas: 0,
+          vendedoresAtivos: 0,
+          taxaConversao: 0
+        },
+        vendedoresStats: [],
+        bingosDetalhes: [],
+        vendasDetalhes: [],
+        cartelasVendidasDetalhes: [],
+        vendedoresDetalhes: []
+      };
+    }
 
-        // Calcular total de cartelas vendidas
-        const totalCartelasVendidas = pedidos.reduce((total, p) => total + p.cartelasVendidas.length, 0);
-        
-        // Calcular total de cartelas retiradas
-        const totalCartelasRetiradas = pedidos.reduce((total, p) => total + p.cartelasRetiradas.length, 0);
-        
-        // Calcular vendedores ativos (com pedidos abertos)
-        const vendedoresComPedidos = new Set(pedidos.filter(p => p.status === 'aberto').map(p => p.vendedorId));
-        
-        // Criar mapa de bingos para acesso rápido
-        const bingosMap = bingos.reduce((acc, bingo) => {
-          acc[bingo.id] = bingo;
-          return acc;
-        }, {} as Record<string, any>);
-        
-        // Calcular total recebido (cartelas vendidas x valor)
-        const totalRecebido = pedidos.reduce((total, pedido) => {
-          const bingo = bingosMap[pedido.bingoId];
-          if (bingo && bingo.valorCartela) {
-            const valorCartela = parseFloat(bingo.valorCartela);
-            if (!isNaN(valorCartela) && valorCartela > 0) {
-              return total + (pedido.cartelasVendidas.length * valorCartela);
-            }
-          }
-          return total;
-        }, 0);
-        
-        // Calcular valor esperado (valor da cartela x quantidade total de cartelas do bingo)
-        const valorEsperado = bingos.reduce((total, bingo) => {
-          if (bingo.valorCartela && bingo.quantidadeCartelas) {
-            const valorCartela = parseFloat(bingo.valorCartela);
-            if (!isNaN(valorCartela) && valorCartela > 0) {
-              return total + (valorCartela * bingo.quantidadeCartelas);
-            }
-          }
-          return total;
-        }, 0);
+    // Calcular total de cartelas vendidas
+    const totalCartelasVendidas = pedidos.reduce((total, p) => total + p.cartelasVendidas.length, 0);
+    
+    // Calcular total de cartelas retiradas
+    const totalCartelasRetiradas = pedidos.reduce((total, p) => total + p.cartelasRetiradas.length, 0);
+    
+    // Calcular vendedores ativos (com pedidos abertos)
+    const vendedoresComPedidos = new Set(pedidos.filter(p => p.status === 'aberto').map(p => p.vendedorId));
+    
+    // Criar mapa de bingos para acesso rápido
+    const bingosMap = bingos.reduce((acc, bingo) => {
+      acc[bingo.id] = bingo;
+      return acc;
+    }, {} as Record<string, any>);
+    
+    // Calcular total recebido (cartelas vendidas x valor)
+    const totalRecebido = pedidos.reduce((total, pedido) => {
+      const bingo = bingosMap[pedido.bingoId];
+      if (bingo && bingo.valorCartela) {
+        const valorCartela = parseFloat(bingo.valorCartela);
+        if (!isNaN(valorCartela) && valorCartela > 0) {
+          return total + (pedido.cartelasVendidas.length * valorCartela);
+        }
+      }
+      return total;
+    }, 0);
+    
+    // Calcular valor esperado (valor da cartela x quantidade total de cartelas do bingo)
+    const valorEsperado = bingos.reduce((total, bingo) => {
+      if (bingo.valorCartela && bingo.quantidadeCartelas) {
+        const valorCartela = parseFloat(bingo.valorCartela);
+        if (!isNaN(valorCartela) && valorCartela > 0) {
+          return total + (valorCartela * bingo.quantidadeCartelas);
+        }
+      }
+      return total;
+    }, 0);
 
         // Calcular detalhes de cada bingo para a modal
         const bingosDetalhesArray = bingos.map(bingo => {
@@ -178,28 +158,28 @@ export default function Relatorios() {
           }))
           .sort((a, b) => b.vendas - a.vendas);
 
-        setStats({
-          totalRecebido,
-          valorEsperado,
-          cartelasVendidas: totalCartelasVendidas,
-          vendedoresAtivos: vendedoresComPedidos.size,
-          taxaConversao: Math.round(taxaConversao)
-        });
+        return {
+          stats: {
+            totalRecebido,
+            valorEsperado,
+            cartelasVendidas: totalCartelasVendidas,
+            vendedoresAtivos: vendedoresComPedidos.size,
+            taxaConversao: Math.round(taxaConversao)
+          },
+          vendedoresStats: vendedoresStatsArray,
+          bingosDetalhes: bingosDetalhesArray,
+          vendasDetalhes: vendasDetalhesArray,
+          cartelasVendidasDetalhes: cartelasVendidasDetalhesArray,
+          vendedoresDetalhes: vendedoresDetalhesArray
+        };
+  }, [vendedores, pedidos, bingos, loading]);
 
-        setVendedoresStats(vendedoresStatsArray);
-        setBingosDetalhes(bingosDetalhesArray);
-        setVendasDetalhes(vendasDetalhesArray);
-        setCartelasVendidasDetalhes(cartelasVendidasDetalhesArray);
-        setVendedoresDetalhes(vendedoresDetalhesArray);
-      } catch (error) {
-        console.error('Erro ao carregar relatórios:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStats();
-  }, []);
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
 
   if (loading) {
     return (

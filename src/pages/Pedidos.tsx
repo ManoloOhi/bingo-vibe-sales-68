@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CreatePedidoForm } from '@/components/forms/CreatePedidoForm';
@@ -7,52 +7,29 @@ import { RetirarCartelasForm } from '@/components/forms/RetirarCartelasForm';
 import { VenderCartelasForm } from '@/components/forms/VenderCartelasForm';
 import { DevolverCartelasForm } from '@/components/forms/DevolverCartelasForm';
 import { PageLayout } from '@/components/Layout/PageLayout';
-import { PedidoService } from '@/services/realPedidoService';
-import { VendedorService } from '@/services/realVendedorService';
-import { BingoService } from '@/services/realBingoService';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Pedido } from '@/services/realPedidoService';
+import { usePedidos, useVendedores, useBingos } from '@/hooks/useQueryData';
 import type { Vendedor } from '@/services/realVendedorService';
 import type { Bingo } from '@/services/realBingoService';
 
 export default function Pedidos() {
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [vendedores, setVendedores] = useState<{ [key: string]: Vendedor }>({});
-  const [bingos, setBingos] = useState<{ [key: string]: Bingo }>({});
-  const [loading, setLoading] = useState(true);
+  const { data: pedidos = [], isLoading: loadingPedidos } = usePedidos();
+  const { data: vendedoresData = [], isLoading: loadingVendedores } = useVendedores();
+  const { data: bingosData = [], isLoading: loadingBingos } = useBingos();
   const { isAdmin } = useAuth();
 
-  const loadPedidos = async () => {
-    try {
-      setLoading(true);
-      const [pedidosData, vendedoresData, bingosData] = await Promise.all([
-        PedidoService.list(),
-        VendedorService.list(),
-        BingoService.list()
-      ]);
-      
-      setPedidos(pedidosData);
-      
-      // Criar mapas para lookup rápido
-      const vendedoresMap = vendedoresData.reduce((acc, v) => ({ ...acc, [v.id]: v }), {});
-      const bingosMap = bingosData.reduce((acc, b) => ({ ...acc, [b.id]: b }), {});
-      
-      setVendedores(vendedoresMap);
-      setBingos(bingosMap);
-    } catch (error) {
-      console.error('Erro ao carregar pedidos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = loadingPedidos || loadingVendedores || loadingBingos;
 
-  const handlePedidoCreated = () => {
-    loadPedidos();
-  };
-
-  useEffect(() => {
-    loadPedidos();
-  }, []);
+  // Criar mapas para lookup rápido
+  const { vendedores, bingos } = useMemo(() => {
+    const vendedoresMap = vendedoresData.reduce((acc, v) => ({ ...acc, [v.id]: v }), {} as { [key: string]: Vendedor });
+    const bingosMap = bingosData.reduce((acc, b) => ({ ...acc, [b.id]: b }), {} as { [key: string]: Bingo });
+    
+    return {
+      vendedores: vendedoresMap,
+      bingos: bingosMap
+    };
+  }, [vendedoresData, bingosData]);
 
   if (loading) {
     return (
@@ -81,7 +58,7 @@ export default function Pedidos() {
   return (
     <PageLayout title={pageTitle} subtitle={pageSubtitle}>
       <div className="space-y-4">
-        <CreatePedidoForm onPedidoCreated={handlePedidoCreated} />
+        <CreatePedidoForm />
         
         <div className="space-y-3">
           {pedidos.length === 0 ? (
@@ -97,14 +74,6 @@ export default function Pedidos() {
             pedidos.map((pedido) => {
               const vendedor = vendedores[pedido.vendedorId];
               const bingo = bingos[pedido.bingoId];
-              // Debug log
-              console.log('Pedido data:', {
-                id: pedido.id,
-                retiradas: pedido.cartelasRetiradas,
-                pendentes: pedido.cartelasPendentes,
-                vendidas: pedido.cartelasVendidas,
-                devolvidas: pedido.cartelasDevolvidas
-              });
 
               return (
                 <Card key={pedido.id} className="border border-border/50">
@@ -167,10 +136,10 @@ export default function Pedidos() {
                     )}
 
                     <div className="flex flex-wrap gap-2">
-                      <EditPedidoForm pedido={pedido} onPedidoUpdated={loadPedidos} />
-                      <RetirarCartelasForm pedido={pedido} onCartelasUpdated={loadPedidos} />
-                      <VenderCartelasForm pedido={pedido} onCartelasUpdated={loadPedidos} />
-                      <DevolverCartelasForm pedido={pedido} onCartelasUpdated={loadPedidos} />
+                      <EditPedidoForm pedido={pedido} />
+                      <RetirarCartelasForm pedido={pedido} />
+                      <VenderCartelasForm pedido={pedido} />
+                      <DevolverCartelasForm pedido={pedido} />
                     </div>
                   </CardContent>
                 </Card>

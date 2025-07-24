@@ -4,18 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
-import { VendedorService } from '@/services/realVendedorService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCreateVendedor } from '@/hooks/useQueryData';
 import type { NewVendedor } from '@/services/realVendedorService';
 
-interface CreateVendedorFormProps {
-  onVendedorCreated?: () => void;
-}
-
-export function CreateVendedorForm({ onVendedorCreated }: CreateVendedorFormProps) {
+export function CreateVendedorForm() {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -23,10 +18,10 @@ export function CreateVendedorForm({ onVendedorCreated }: CreateVendedorFormProp
   });
   const { toast } = useToast();
   const { user } = useAuth();
+  const createVendedor = useCreateVendedor();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
       if (!user) {
@@ -41,7 +36,7 @@ export function CreateVendedorForm({ onVendedorCreated }: CreateVendedorFormProp
         ativo: true
       };
 
-      await VendedorService.create(vendedorData);
+      await createVendedor.mutateAsync(vendedorData);
 
       toast({
         title: "Sucesso!",
@@ -50,15 +45,12 @@ export function CreateVendedorForm({ onVendedorCreated }: CreateVendedorFormProp
 
       setFormData({ nome: '', email: '', whatsapp: '' });
       setOpen(false);
-      onVendedorCreated?.();
     } catch (error) {
       toast({
         title: "Erro",
         description: error instanceof Error ? error.message : "Erro ao criar vendedor",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -120,10 +112,10 @@ export function CreateVendedorForm({ onVendedorCreated }: CreateVendedorFormProp
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={createVendedor.isPending}
               className="flex-1"
             >
-              {loading ? "Criando..." : "Adicionar"}
+              {createVendedor.isPending ? "Criando..." : "Adicionar"}
             </Button>
           </div>
         </form>
