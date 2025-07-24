@@ -13,7 +13,22 @@ import Relatorios from "./pages/Relatorios";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0, // Dados sempre considerados desatualizados
+      gcTime: 1000 * 60 * 5, // 5 minutos em cache
+      refetchOnWindowFocus: true, // Refetch quando focus na janela
+      refetchOnReconnect: true, // Refetch quando reconecta
+    },
+    mutations: {
+      onSuccess: () => {
+        // Invalidar todos os dados após qualquer mutação
+        queryClient.invalidateQueries();
+      },
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

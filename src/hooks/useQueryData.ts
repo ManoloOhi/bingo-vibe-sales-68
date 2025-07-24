@@ -45,6 +45,8 @@ export const useCreateBingo = () => {
     mutationFn: BingoService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
+      // Invalidar pedidos pois novo bingo pode afetar relacionamentos
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
     },
   });
 };
@@ -58,6 +60,8 @@ export const useUpdateBingo = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingo(id) });
+      // Invalidar pedidos relacionados ao bingo
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidosByBingo(id) });
     },
   });
 };
@@ -69,6 +73,8 @@ export const useDeleteBingo = () => {
     mutationFn: BingoService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
+      // Invalidar todos os pedidos pois exclusão de bingo pode afetar
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
     },
   });
 };
@@ -101,6 +107,8 @@ export const useCreateVendedor = () => {
     mutationFn: VendedorService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
+      // Invalidar pedidos pois pode afetar relacionamentos
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
     },
   });
 };
@@ -114,6 +122,8 @@ export const useUpdateVendedor = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedor(id) });
+      // Invalidar pedidos relacionados ao vendedor
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidosByVendedor(id) });
     },
   });
 };
@@ -125,6 +135,8 @@ export const useDeleteVendedor = () => {
     mutationFn: (id: string) => VendedorService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
+      // Invalidar todos os pedidos pois inativação de vendedor pode afetar
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
     },
   });
 };
@@ -174,6 +186,7 @@ export const useCreatePedido = () => {
   return useMutation({
     mutationFn: PedidoService.create,
     onSuccess: (newPedido) => {
+      // Invalidar TODOS os pedidos e dados relacionados
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
       queryClient.invalidateQueries({ 
         queryKey: QUERY_KEYS.pedidosByVendedor(newPedido.vendedorId) 
@@ -181,6 +194,10 @@ export const useCreatePedido = () => {
       queryClient.invalidateQueries({ 
         queryKey: QUERY_KEYS.pedidosByBingo(newPedido.bingoId) 
       });
+      // Invalidar vendedores pois pode afetar status ativo/livre
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
+      // Invalidar bingos pois pode afetar cartelas disponíveis
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
     },
   });
 };
@@ -192,6 +209,7 @@ export const useUpdatePedido = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Pedido> }) => 
       PedidoService.update(id, data),
     onSuccess: (updatedPedido, { id }) => {
+      // Invalidar TODOS os dados relacionados a pedidos
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedido(id) });
       if (updatedPedido) {
@@ -202,6 +220,10 @@ export const useUpdatePedido = () => {
           queryKey: QUERY_KEYS.pedidosByBingo(updatedPedido.bingoId) 
         });
       }
+      // Invalidar vendedores pois mudança de status afeta disponibilidade
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
+      // Invalidar bingos pois pode afetar cartelas
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
     },
   });
 };
