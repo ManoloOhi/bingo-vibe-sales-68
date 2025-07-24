@@ -56,32 +56,39 @@ export default function BingoDetalhes() {
   const percentualVendido = parseFloat(vendasData.resumo.percentualVendido);
 
   return (
-    <PageLayout title={bingo.nome} subtitle="Detalhes e estatísticas do bingo">
+    <PageLayout title="Detalhes do Bingo" subtitle="">
       <div className="space-y-6">
-        {/* Header com botão voltar */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => navigate('/bingos')}
-          >
-            <ArrowLeft size={16} className="mr-2" />
-            Voltar
-          </Button>
-          <Badge variant="secondary" className={bingo.ativo ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
-            {bingo.ativo ? 'Ativo' : 'Inativo'}
-          </Badge>
+        {/* Header consolidado */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/bingos')}
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Voltar
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">{bingo.nome}</h1>
+              <p className="text-sm text-muted-foreground">
+                Cartelas: {String(bingo.rangeInicio).padStart(3, '0')}-{String(bingo.rangeFim).padStart(3, '0')} • {format(new Date(bingo.dataBingo), "dd/MM/yyyy")}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className={bingo.ativo ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
+              {bingo.ativo ? 'Ativo' : 'Inativo'}
+            </Badge>
+          </div>
         </div>
 
         {/* Resumo do Bingo */}
         <Card className="p-6">
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">{bingo.nome}</h2>
-                <p className="text-muted-foreground">
-                  Cartelas: {String(bingo.rangeInicio).padStart(3, '0')}-{String(bingo.rangeFim).padStart(3, '0')}
-                </p>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-foreground">Resumo de Vendas</h3>
                 <p className="text-sm text-muted-foreground">
                   <Calendar size={14} className="inline mr-1" />
                   {format(new Date(bingo.dataBingo), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
