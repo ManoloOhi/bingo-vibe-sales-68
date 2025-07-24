@@ -19,6 +19,7 @@ export const QUERY_KEYS = {
   pedidosByBingo: (bingoId: string) => ['pedidos', 'bingo', bingoId] as const,
   VENDAS_VENDEDOR: 'vendas-vendedor',
   VENDAS_BINGO: 'vendas-bingo',
+  relatorioCompleto: ['relatorio', 'completo'] as const,
 } as const;
 
 // ========================================
@@ -581,5 +582,17 @@ export const useVendasBingo = (bingoId: string) => {
     queryKey: [QUERY_KEYS.VENDAS_BINGO, bingoId],
     queryFn: () => ApiService.getVendasBingo(bingoId),
     enabled: !!bingoId,
+  });
+};
+
+// ========================================
+// 📊 RELATÓRIO COMPLETO HOOK
+// ========================================
+export const useRelatorioCompleto = () => {
+  return useQuery({
+    queryKey: QUERY_KEYS.relatorioCompleto,
+    queryFn: () => ApiService.getRelatorioCompleto(),
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    gcTime: 5 * 60 * 1000, // 5 minutos
   });
 };
