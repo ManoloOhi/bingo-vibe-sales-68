@@ -26,6 +26,18 @@ export default function Relatorios() {
     valorEsperado: number;
     quantidadeCartelas: number;
   }>>([]);
+  const [vendasDetalhes, setVendasDetalhes] = useState<Array<{
+    nome: string;
+    totalRecebido: number;
+    cartelasVendidas: number;
+  }>>([]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
 
   useEffect(() => {
     const loadStats = async () => {
@@ -83,6 +95,21 @@ export default function Relatorios() {
             quantidadeCartelas: bingo.quantidadeCartelas
           };
         }).filter(item => item.valorEsperado > 0);
+
+        // Calcular detalhes de vendas por bingo para a modal do Total Recebido
+        const vendasDetalhesArray = bingos.map(bingo => {
+          const valorCartela = parseFloat(bingo.valorCartela) || 0;
+          // Somar cartelas vendidas deste bingo específico
+          const cartelasVendidasBingo = pedidos
+            .filter(p => p.bingoId === bingo.id)
+            .reduce((total, p) => total + p.cartelasVendidas.length, 0);
+          
+          return {
+            nome: bingo.nome,
+            totalRecebido: valorCartela * cartelasVendidasBingo,
+            cartelasVendidas: cartelasVendidasBingo
+          };
+        }).filter(item => item.cartelasVendidas > 0);
         
         // Calcular taxa de conversão
         const taxaConversao = totalCartelasRetiradas > 0 ? (totalCartelasVendidas / totalCartelasRetiradas) * 100 : 0;
@@ -120,6 +147,7 @@ export default function Relatorios() {
 
         setVendedoresStats(vendedoresStatsArray);
         setBingosDetalhes(bingosDetalhesArray);
+        setVendasDetalhes(vendasDetalhesArray);
       } catch (error) {
         console.error('Erro ao carregar relatórios:', error);
       } finally {
@@ -154,11 +182,48 @@ export default function Relatorios() {
     <PageLayout title="Relatórios" subtitle="Análise de vendas">
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <Card className="p-4 text-center shadow-[var(--shadow-card)]">
-            <DollarSign size={24} className="text-success mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Total Recebido</p>
-            <p className="text-xl font-bold text-foreground">R$ {(stats.totalRecebido || 0).toFixed(2)}</p>
-          </Card>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Card className="p-4 text-center shadow-[var(--shadow-card)] cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <DollarSign size={24} className="text-success" />
+                  <Eye size={16} className="text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">Total Recebido</p>
+                <p className="text-xl font-bold text-foreground">{formatCurrency(stats.totalRecebido || 0)}</p>
+              </Card>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Detalhes do Total Recebido</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  {vendasDetalhes.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">Nenhuma venda registrada ainda</p>
+                  ) : (
+                    vendasDetalhes.map((venda, i) => (
+                      <div key={i} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">{venda.nome}</p>
+                          <p className="text-xs text-muted-foreground">{venda.cartelasVendidas} cartelas vendidas</p>
+                        </div>
+                        <p className="font-bold text-success">{formatCurrency(venda.totalRecebido)}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {vendasDetalhes.length > 0 && (
+                  <div className="pt-3 border-t border-border">
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">Total Recebido:</p>
+                      <p className="text-lg font-bold text-success">{formatCurrency(stats.totalRecebido || 0)}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           
           <Dialog>
             <DialogTrigger asChild>
@@ -168,7 +233,7 @@ export default function Relatorios() {
                   <Eye size={16} className="text-muted-foreground" />
                 </div>
                 <p className="text-sm text-muted-foreground">Valor Esperado</p>
-                <p className="text-xl font-bold text-foreground">R$ {(stats.valorEsperado || 0).toFixed(2)}</p>
+                <p className="text-xl font-bold text-foreground">{formatCurrency(stats.valorEsperado || 0)}</p>
               </Card>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -186,7 +251,7 @@ export default function Relatorios() {
                           <p className="font-medium text-sm">{bingo.nome}</p>
                           <p className="text-xs text-muted-foreground">{bingo.quantidadeCartelas} cartelas</p>
                         </div>
-                        <p className="font-bold text-primary">R$ {bingo.valorEsperado.toFixed(2)}</p>
+                        <p className="font-bold text-primary">{formatCurrency(bingo.valorEsperado)}</p>
                       </div>
                     ))
                   )}
@@ -195,7 +260,7 @@ export default function Relatorios() {
                   <div className="pt-3 border-t border-border">
                     <div className="flex justify-between items-center">
                       <p className="font-semibold">Total Esperado:</p>
-                      <p className="text-lg font-bold text-primary">R$ {(stats.valorEsperado || 0).toFixed(2)}</p>
+                      <p className="text-lg font-bold text-primary">{formatCurrency(stats.valorEsperado || 0)}</p>
                     </div>
                   </div>
                 )}
