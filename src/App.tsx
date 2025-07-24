@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Bingos from "./pages/Bingos";
 import Vendedores from "./pages/Vendedores";
+import VendedorDetalhes from "./pages/VendedorDetalhes";
 import Pedidos from "./pages/Pedidos";
 import Relatorios from "./pages/Relatorios";
 import Login from "./pages/Login";
@@ -62,6 +63,11 @@ const App = () => (
             <Route path="/vendedores" element={
               <ProtectedRoute adminOnly>
                 <Vendedores />
+              </ProtectedRoute>
+            } />
+            <Route path="/vendedores/:id/detalhes" element={
+              <ProtectedRoute adminOnly>
+                <VendedorDetalhes />
               </ProtectedRoute>
             } />
             <Route path="/pedidos" element={

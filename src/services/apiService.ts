@@ -102,6 +102,10 @@ class ApiService {
     });
   }
 
+  static async getVendasVendedor(vendedorId: string) {
+    return this.request(`/vendas/vendedor/${vendedorId}`);
+  }
+
   // ========================================
   // 📦 PEDIDOS
   // ========================================

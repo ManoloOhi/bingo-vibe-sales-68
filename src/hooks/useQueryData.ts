@@ -110,6 +110,14 @@ export const useVendedor = (id: string) => {
   });
 };
 
+export const useVendasVendedor = (vendedorId: string) => {
+  return useQuery({
+    queryKey: ['vendas-vendedor', vendedorId],
+    queryFn: () => ApiService.getVendasVendedor(vendedorId),
+    enabled: !!vendedorId,
+  });
+};
+
 export const useCreateVendedor = () => {
   const queryClient = useQueryClient();
   

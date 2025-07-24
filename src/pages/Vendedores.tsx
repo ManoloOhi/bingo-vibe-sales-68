@@ -2,14 +2,15 @@ import { PageLayout } from '@/components/Layout/PageLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Phone, Mail, Package, Loader2 } from 'lucide-react';
+import { Phone, Mail, Package, Loader2, TrendingUp, DollarSign, Eye } from 'lucide-react';
 import { CreateVendedorForm } from '@/components/forms/CreateVendedorForm';
 import { EditVendedorForm } from '@/components/forms/EditVendedorForm';
 import { DeleteVendedorForm } from '@/components/forms/DeleteVendedorForm';
 import { CacheDebug } from '@/components/ui/cache-debug';
 import type { Vendedor } from '@/services/realVendedorService';
-import { useVendedores, usePedidosByVendedor } from '@/hooks/useQueryData';
+import { useVendedores, usePedidosByVendedor, useVendasVendedor } from '@/hooks/useQueryData';
 import { useQueryPersister } from '@/hooks/useQueryPersister';
+import { useNavigate } from 'react-router-dom';
 
 // Hook para contar pedidos ativos de um vendedor
 const VendedorPedidos = ({ vendedorId }: { vendedorId: string }) => {
@@ -81,14 +82,35 @@ export default function Vendedores() {
 
 // Componente separado para cada vendedor
 const VendedorCard = ({ vendedor }: { vendedor: Vendedor }) => {
+  const navigate = useNavigate();
   const { data: pedidos = [] } = usePedidosByVendedor(vendedor.id);
+  const { data: vendasData } = useVendasVendedor(vendedor.id);
   const pedidosAbertos = pedidos.filter(p => p.status === 'aberto').length;
   
+  const totalVendido = vendasData?.resumo?.valorTotalVendas || "0.00";
+  const cartelasVendidas = vendasData?.resumo?.totalCartelasVendidas || 0;
+  const totalVendas = vendasData?.resumo?.totalVendas || 0;
+  
+  const getPerformanceBadge = () => {
+    const valor = parseFloat(totalVendido);
+    if (valor >= 500) return { text: "Top Seller", color: "bg-success text-success-foreground" };
+    if (valor >= 200) return { text: "Vendedor", color: "bg-primary text-primary-foreground" };
+    if (valor > 0) return { text: "Iniciante", color: "bg-secondary text-secondary-foreground" };
+    return { text: vendedor.ativo ? "Livre" : "Inativo", color: "bg-muted text-muted-foreground" };
+  };
+  
+  const performanceBadge = getPerformanceBadge();
+  
   return (
-    <Card className="p-4 shadow-[var(--shadow-card)]">
+    <Card className="p-4 shadow-[var(--shadow-card)] hover:shadow-lg transition-shadow">
       <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="font-semibold text-foreground">{vendedor.nome}</h3>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-foreground">{vendedor.nome}</h3>
+            <Badge className={performanceBadge.color}>
+              {performanceBadge.text}
+            </Badge>
+          </div>
           <div className="flex items-center gap-1 mt-1">
             <Phone size={12} className="text-muted-foreground" />
             <span className="text-xs text-muted-foreground">{vendedor.whatsapp}</span>
@@ -98,17 +120,44 @@ const VendedorCard = ({ vendedor }: { vendedor: Vendedor }) => {
             <span className="text-xs text-muted-foreground">{vendedor.email}</span>
           </div>
         </div>
-        <Badge 
-          variant="secondary" 
-          className={pedidosAbertos > 0 ? "bg-success text-success-foreground" : vendedor.ativo ? "" : "bg-muted text-muted-foreground"}
-        >
-          {!vendedor.ativo ? 'Inativo' : pedidosAbertos > 0 ? 'Ativo' : 'Livre'}
-        </Badge>
       </div>
       
-      <div className="flex items-center justify-between pt-3 border-t border-border">
+      {/* Métricas de Performance */}
+      <div className="grid grid-cols-3 gap-3 py-3 border-y border-border">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <DollarSign size={14} className="text-success" />
+            <span className="text-xs font-medium text-muted-foreground">Total</span>
+          </div>
+          <p className="text-sm font-semibold text-success">R$ {totalVendido}</p>
+        </div>
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <TrendingUp size={14} className="text-primary" />
+            <span className="text-xs font-medium text-muted-foreground">Cartelas</span>
+          </div>
+          <p className="text-sm font-semibold text-foreground">{cartelasVendidas}</p>
+        </div>
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Package size={14} className="text-orange-500" />
+            <span className="text-xs font-medium text-muted-foreground">Vendas</span>
+          </div>
+          <p className="text-sm font-semibold text-foreground">{totalVendas}</p>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between pt-3">
         <VendedorPedidos vendedorId={vendedor.id} />
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate(`/vendedores/${vendedor.id}/detalhes`)}
+            className="h-8 px-2"
+          >
+            <Eye size={14} />
+          </Button>
           <EditVendedorForm vendedor={vendedor} />
           <DeleteVendedorForm vendedor={vendedor} pedidosAtivos={pedidosAbertos} />
         </div>
