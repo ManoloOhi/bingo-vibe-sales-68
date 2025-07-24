@@ -10,6 +10,7 @@ import { useVendasBingo } from '@/hooks/useQueryData';
 import { useBingo } from '@/hooks/useQueryData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { DownloadBingoReportButton } from '@/components/forms/DownloadBingoReportButton';
 
 export default function BingoDetalhes() {
   const { id } = useParams<{ id: string }>();
@@ -77,6 +78,10 @@ export default function BingoDetalhes() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <DownloadBingoReportButton 
+              bingoId={bingo.id} 
+              bingoNome={bingo.nome} 
+            />
             <Badge variant="secondary" className={bingo.ativo ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
               {bingo.ativo ? 'Ativo' : 'Inativo'}
             </Badge>
