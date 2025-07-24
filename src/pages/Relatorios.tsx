@@ -211,7 +211,7 @@ export default function Relatorios() {
                           <p className="font-medium text-sm">{venda.nome}</p>
                           <p className="text-xs text-muted-foreground">{venda.cartelasVendidas} cartelas vendidas</p>
                         </div>
-                        <p className="font-bold text-success">{formatCurrency(venda.totalRecebido)}</p>
+                        <p className="font-bold text-foreground">{formatCurrency(venda.totalRecebido)}</p>
                       </div>
                     ))
                   )}
@@ -220,7 +220,7 @@ export default function Relatorios() {
                   <div className="pt-3 border-t border-border">
                     <div className="flex justify-between items-center">
                       <p className="font-semibold">Total Recebido:</p>
-                      <p className="text-lg font-bold text-success">{formatCurrency(stats.totalRecebido || 0)}</p>
+                      <p className="text-lg font-bold text-foreground">{formatCurrency(stats.totalRecebido || 0)}</p>
                     </div>
                   </div>
                 )}
@@ -257,7 +257,7 @@ export default function Relatorios() {
                           <p className="font-medium text-sm">{bingo.nome}</p>
                           <p className="text-xs text-muted-foreground">{bingo.quantidadeCartelas} cartelas</p>
                         </div>
-                        <p className="font-bold text-primary">{formatCurrency(bingo.valorEsperado)}</p>
+                        <p className="font-bold text-foreground">{formatCurrency(bingo.valorEsperado)}</p>
                       </div>
                     ))
                   )}
@@ -266,7 +266,7 @@ export default function Relatorios() {
                   <div className="pt-3 border-t border-border">
                     <div className="flex justify-between items-center">
                       <p className="font-semibold">Total Esperado:</p>
-                      <p className="text-lg font-bold text-primary">{formatCurrency(stats.valorEsperado || 0)}</p>
+                      <p className="text-lg font-bold text-foreground">{formatCurrency(stats.valorEsperado || 0)}</p>
                     </div>
                   </div>
                 )}
