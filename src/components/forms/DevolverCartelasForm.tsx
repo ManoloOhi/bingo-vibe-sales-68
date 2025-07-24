@@ -20,10 +20,12 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
   const { toast } = useToast();
   const devolverCartelas = useDevolverCartelas();
 
-  // Cartelas disponíveis para devolução = vendidas - já devolvidas
-  const cartelasDisponiveis = pedido.cartelasVendidas.filter(c => 
-    !pedido.cartelasDevolvidas.includes(c)
-  );
+  // Cartelas disponíveis para devolução = (pendentes + vendidas) - já devolvidas
+  const cartelasDisponiveis = [
+    ...pedido.cartelasPendentes,
+    ...pedido.cartelasVendidas
+  ].filter(c => !pedido.cartelasDevolvidas.includes(c))
+   .sort((a, b) => a - b);
 
   const getCartelasNoRange = (inicio: number, fim: number): number[] => {
     const min = Math.min(inicio, fim);
@@ -126,7 +128,7 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
 
           <div className="space-y-2">
             <div className="text-sm font-medium">
-              Cartelas Vendidas 
+              Cartelas para Devolução
               <span className="text-xs text-muted-foreground ml-2">(Ctrl+click para seleção em range)</span>
             </div>
             <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto border rounded p-3">
