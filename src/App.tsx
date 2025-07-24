@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthWrapper } from "@/components/AuthWrapper";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -17,7 +18,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 0, // Dados sempre considerados desatualizados
-      gcTime: 1000 * 60 * 5, // 5 minutos em cache
+      gcTime: 1000 * 60 * 30, // 30 minutos em cache
       refetchOnWindowFocus: true, // Refetch quando focus na janela
       refetchOnReconnect: true, // Refetch quando reconecta
     },
@@ -25,10 +26,35 @@ const queryClient = new QueryClient({
       onSuccess: () => {
         // Invalidar todos os dados após qualquer mutação
         queryClient.invalidateQueries();
+        // Salvar estado atual no sessionStorage para debug
+        const cacheState = {
+          timestamp: Date.now(),
+          queries: queryClient.getQueryCache().getAll().length
+        };
+        sessionStorage.setItem('BINGO_CACHE_INFO', JSON.stringify(cacheState));
       },
     },
   },
 });
+
+// Configurar persister com sessionStorage  
+const sessionStoragePersister = createSyncStoragePersister({
+  storage: window.sessionStorage,
+  key: 'BINGO_CACHE_KEY',
+});
+
+// Restaurar cache do sessionStorage na inicialização
+const restoreCache = async () => {
+  try {
+    await sessionStoragePersister.restoreClient();
+    console.log('📦 Cache restaurado do sessionStorage');
+  } catch (error) {
+    console.log('⚠️ Não foi possível restaurar cache:', error);
+  }
+};
+
+// Executar restauração
+restoreCache();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

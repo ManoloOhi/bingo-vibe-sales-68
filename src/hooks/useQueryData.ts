@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BingoService, Bingo } from '@/services/realBingoService';
 import { VendedorService, Vendedor } from '@/services/realVendedorService';
 import { PedidoService, Pedido } from '@/services/realPedidoService';
+import { debugCache } from '@/utils/cacheUtils';
 
 // ========================================
 // 🗝️ QUERY KEYS
@@ -44,6 +45,8 @@ export const useCreateBingo = () => {
   return useMutation({
     mutationFn: BingoService.create,
     onSuccess: () => {
+      console.log('🎯 Invalidando cache após criar bingo');
+      debugCache();
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
       // Invalidar pedidos pois novo bingo pode afetar relacionamentos
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
@@ -212,6 +215,8 @@ export const useRetirarCartelas = () => {
     mutationFn: ({ pedidoId, cartelas }: { pedidoId: string; cartelas: number[] }) => 
       PedidoService.retirarCartelas(pedidoId, cartelas),
     onSuccess: (updatedPedido) => {
+      console.log('🎫 Invalidando cache após retirar cartelas');
+      debugCache();
       // Invalidar TODOS os dados relacionados
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
       if (updatedPedido) {

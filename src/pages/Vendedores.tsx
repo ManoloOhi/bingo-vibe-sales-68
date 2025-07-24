@@ -6,6 +6,7 @@ import { Phone, Mail, Package, Loader2 } from 'lucide-react';
 import { CreateVendedorForm } from '@/components/forms/CreateVendedorForm';
 import { EditVendedorForm } from '@/components/forms/EditVendedorForm';
 import { DeleteVendedorForm } from '@/components/forms/DeleteVendedorForm';
+import { CacheDebug } from '@/components/ui/cache-debug';
 import type { Vendedor } from '@/services/realVendedorService';
 import { useVendedores, usePedidosByVendedor } from '@/hooks/useQueryData';
 
@@ -69,6 +70,7 @@ export default function Vendedores() {
           )}
         </div>
       </div>
+      <CacheDebug />
     </PageLayout>
   );
 }
