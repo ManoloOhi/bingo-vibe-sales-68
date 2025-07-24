@@ -17,6 +17,8 @@ export const QUERY_KEYS = {
   pedido: (id: string) => ['pedidos', id] as const,
   pedidosByVendedor: (vendedorId: string) => ['pedidos', 'vendedor', vendedorId] as const,
   pedidosByBingo: (bingoId: string) => ['pedidos', 'bingo', bingoId] as const,
+  VENDAS_VENDEDOR: 'vendas-vendedor',
+  VENDAS_BINGO: 'vendas-bingo',
 } as const;
 
 // ========================================
@@ -110,13 +112,6 @@ export const useVendedor = (id: string) => {
   });
 };
 
-export const useVendasVendedor = (vendedorId: string) => {
-  return useQuery({
-    queryKey: ['vendas-vendedor', vendedorId],
-    queryFn: () => ApiService.getVendasVendedor(vendedorId),
-    enabled: !!vendedorId,
-  });
-};
 
 export const useCreateVendedor = () => {
   const queryClient = useQueryClient();
@@ -568,4 +563,23 @@ export const useInvalidateAll = () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
     },
   };
+};
+
+// =========================================
+// 📊 VENDAS HOOKS
+// =========================================
+export const useVendasVendedor = (vendedorId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.VENDAS_VENDEDOR, vendedorId],
+    queryFn: () => ApiService.getVendasVendedor(vendedorId),
+    enabled: !!vendedorId,
+  });
+};
+
+export const useVendasBingo = (bingoId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.VENDAS_BINGO, bingoId],
+    queryFn: () => ApiService.getVendasBingo(bingoId),
+    enabled: !!bingoId,
+  });
 };

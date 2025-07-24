@@ -106,6 +106,10 @@ class ApiService {
     return this.request(`/vendas/vendedor/${vendedorId}`);
   }
 
+  static async getVendasBingo(bingoId: string) {
+    return this.request(`/vendas/bingo/${bingoId}`);
+  }
+
   // ========================================
   // 📦 PEDIDOS
   // ========================================
