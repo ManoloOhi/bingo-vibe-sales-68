@@ -114,7 +114,7 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
           Devolver Cartelas
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-w-[95vw]">
         <DialogHeader>
           <DialogTitle>Devolver Cartelas</DialogTitle>
         </DialogHeader>
