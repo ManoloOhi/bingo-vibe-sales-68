@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { RotateCcw, Minus } from 'lucide-react';
 import { PedidoService } from '@/services/realPedidoService';
 import { useToast } from '@/hooks/use-toast';
+import { useDevolverCartelas } from '@/hooks/useQueryData';
 import type { Pedido } from '@/services/realPedidoService';
 
 interface DevolverCartelasFormProps {
@@ -14,10 +15,10 @@ interface DevolverCartelasFormProps {
 
 export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCartelasFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [cartelasSelecionadas, setCartelasSelecionadas] = useState<number[]>([]);
   const [ultimaCartelaSelecionada, setUltimaCartelaSelecionada] = useState<number | null>(null);
   const { toast } = useToast();
+  const devolverCartelas = useDevolverCartelas();
 
   // Cartelas disponíveis para devolução = vendidas - já devolvidas
   const cartelasDisponiveis = pedido.cartelasVendidas.filter(c => 
@@ -73,10 +74,11 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
       return;
     }
 
-    setLoading(true);
-
     try {
-      await PedidoService.devolverCartelas(pedido.id, cartelasSelecionadas);
+      await devolverCartelas.mutateAsync({ 
+        pedidoId: pedido.id, 
+        cartelas: cartelasSelecionadas 
+      });
 
       toast({
         title: "Sucesso!",
@@ -92,8 +94,6 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
         description: error instanceof Error ? error.message : "Erro ao devolver cartelas",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -172,11 +172,11 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
             </Button>
             <Button
               type="submit"
-              disabled={loading || cartelasSelecionadas.length === 0}
+              disabled={devolverCartelas.isPending || cartelasSelecionadas.length === 0}
               className="flex-1"
               variant="destructive"
             >
-              {loading ? "Devolvendo..." : `Devolver ${cartelasSelecionadas.length} Cartela(s)`}
+              {devolverCartelas.isPending ? "Devolvendo..." : `Devolver ${cartelasSelecionadas.length} Cartela(s)`}
             </Button>
           </div>
         </form>

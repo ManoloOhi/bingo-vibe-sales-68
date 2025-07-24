@@ -202,6 +202,81 @@ export const useCreatePedido = () => {
   });
 };
 
+// ========================================
+// 🎫 CARTELAS HOOKS
+// ========================================
+export const useRetirarCartelas = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ pedidoId, cartelas }: { pedidoId: string; cartelas: number[] }) => 
+      PedidoService.retirarCartelas(pedidoId, cartelas),
+    onSuccess: (updatedPedido) => {
+      // Invalidar TODOS os dados relacionados
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
+      if (updatedPedido) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedido(updatedPedido.id) });
+        queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.pedidosByVendedor(updatedPedido.vendedorId) 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.pedidosByBingo(updatedPedido.bingoId) 
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
+    },
+  });
+};
+
+export const useVenderCartelas = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ pedidoId, cartelas }: { pedidoId: string; cartelas: number[] }) => 
+      PedidoService.venderCartelas(pedidoId, cartelas),
+    onSuccess: (updatedPedido) => {
+      // Invalidar TODOS os dados relacionados
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
+      if (updatedPedido) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedido(updatedPedido.id) });
+        queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.pedidosByVendedor(updatedPedido.vendedorId) 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.pedidosByBingo(updatedPedido.bingoId) 
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
+    },
+  });
+};
+
+export const useDevolverCartelas = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ pedidoId, cartelas }: { pedidoId: string; cartelas: number[] }) => 
+      PedidoService.devolverCartelas(pedidoId, cartelas),
+    onSuccess: (updatedPedido) => {
+      // Invalidar TODOS os dados relacionados
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedidos });
+      if (updatedPedido) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pedido(updatedPedido.id) });
+        queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.pedidosByVendedor(updatedPedido.vendedorId) 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.pedidosByBingo(updatedPedido.bingoId) 
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vendedores });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.bingos });
+    },
+  });
+};
+
 export const useUpdatePedido = () => {
   const queryClient = useQueryClient();
   

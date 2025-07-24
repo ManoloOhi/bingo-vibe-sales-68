@@ -9,6 +9,7 @@ import { Package, Minus } from 'lucide-react';
 import { PedidoService } from '@/services/realPedidoService';
 import { BingoService } from '@/services/realBingoService';
 import { useToast } from '@/hooks/use-toast';
+import { useRetirarCartelas } from '@/hooks/useQueryData';
 import type { Pedido } from '@/services/realPedidoService';
 
 interface RetirarCartelasFormProps {
@@ -18,12 +19,12 @@ interface RetirarCartelasFormProps {
 
 export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartelasFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [cartelasDisponiveis, setCartelasDisponiveis] = useState<number[]>([]);
   const [cartelasSelecionadas, setCartelasSelecionadas] = useState<number[]>([]);
   const [rangeInicio, setRangeInicio] = useState('');
   const [rangeFim, setRangeFim] = useState('');
   const { toast } = useToast();
+  const retirarCartelas = useRetirarCartelas();
 
   useEffect(() => {
     const loadCartelasDisponiveis = async () => {
@@ -83,10 +84,11 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
       return;
     }
 
-    setLoading(true);
-
     try {
-      await PedidoService.retirarCartelas(pedido.id, cartelasSelecionadas);
+      await retirarCartelas.mutateAsync({ 
+        pedidoId: pedido.id, 
+        cartelas: cartelasSelecionadas 
+      });
 
       toast({
         title: "Sucesso!",
@@ -102,8 +104,6 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
         description: error instanceof Error ? error.message : "Erro ao retirar cartelas",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -184,10 +184,10 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
             </Button>
             <Button
               type="submit"
-              disabled={loading || cartelasSelecionadas.length === 0}
+              disabled={retirarCartelas.isPending || cartelasSelecionadas.length === 0}
               className="flex-1"
             >
-              {loading ? "Retirando..." : `Retirar ${cartelasSelecionadas.length} Cartela(s)`}
+              {retirarCartelas.isPending ? "Retirando..." : `Retirar ${cartelasSelecionadas.length} Cartela(s)`}
             </Button>
           </div>
         </form>

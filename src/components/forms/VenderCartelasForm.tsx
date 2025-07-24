@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Minus } from 'lucide-react';
 import { PedidoService } from '@/services/realPedidoService';
 import { useToast } from '@/hooks/use-toast';
+import { useVenderCartelas } from '@/hooks/useQueryData';
 import type { Pedido } from '@/services/realPedidoService';
 
 interface VenderCartelasFormProps {
@@ -14,10 +15,10 @@ interface VenderCartelasFormProps {
 
 export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelasFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [cartelasSelecionadas, setCartelasSelecionadas] = useState<number[]>([]);
   const [ultimaCartelaSelecionada, setUltimaCartelaSelecionada] = useState<number | null>(null);
   const { toast } = useToast();
+  const venderCartelas = useVenderCartelas();
 
   // Cartelas disponíveis para venda (pendentes)
   const cartelasDisponiveis = pedido.cartelasPendentes;
@@ -71,10 +72,11 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
       return;
     }
 
-    setLoading(true);
-
     try {
-      await PedidoService.venderCartelas(pedido.id, cartelasSelecionadas);
+      await venderCartelas.mutateAsync({ 
+        pedidoId: pedido.id, 
+        cartelas: cartelasSelecionadas 
+      });
 
       toast({
         title: "Sucesso!",
@@ -90,8 +92,6 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
         description: error instanceof Error ? error.message : "Erro ao vender cartelas",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -170,10 +170,10 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
             </Button>
             <Button
               type="submit"
-              disabled={loading || cartelasSelecionadas.length === 0}
+              disabled={venderCartelas.isPending || cartelasSelecionadas.length === 0}
               className="flex-1"
             >
-              {loading ? "Vendendo..." : `Vender ${cartelasSelecionadas.length} Cartela(s)`}
+              {venderCartelas.isPending ? "Vendendo..." : `Vender ${cartelasSelecionadas.length} Cartela(s)`}
             </Button>
           </div>
         </form>
