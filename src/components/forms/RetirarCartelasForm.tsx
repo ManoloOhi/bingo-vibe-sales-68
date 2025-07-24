@@ -20,13 +20,14 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
   const [cartelasSelecionadas, setCartelasSelecionadas] = useState<number[]>([]);
   const [rangeInicio, setRangeInicio] = useState('');
   const [rangeFim, setRangeFim] = useState('');
+  const [cartelaIndividual, setCartelaIndividual] = useState('');
   const { toast } = useToast();
   const retirarCartelas = useRetirarCartelas();
   
   // Usar o novo hook para cartelas disponíveis
   const { cartelasDisponiveis, rangesIndisponiveis, validarRange } = useCartelasDisponiveis(pedido.bingoId);
 
-  // Validação em tempo real do range
+  // Validação em tempo real do range - REMOVENDO RESTRIÇÃO SEQUENCIAL
   const rangeValidation = (() => {
     if (!rangeInicio || !rangeFim) return null;
     
@@ -34,9 +35,13 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
     const fim = parseInt(rangeFim);
     
     if (isNaN(inicio) || isNaN(fim)) return null;
-    if (inicio > fim) return { valido: false, erro: 'Início deve ser menor que fim' };
+    // REMOVIDO: if (inicio > fim) return { valido: false, erro: 'Início deve ser menor que fim' };
     
-    return validarRange(inicio, fim);
+    // Se início > fim, trocar os valores automaticamente
+    const menor = Math.min(inicio, fim);
+    const maior = Math.max(inicio, fim);
+    
+    return validarRange(menor, maior);
   })();
 
   const adicionarRange = () => {
@@ -44,7 +49,7 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
       if (rangeValidation && 'erro' in rangeValidation) {
         toast({
           title: "Erro no range",
-          description: rangeValidation.erro,
+          description: String(rangeValidation.erro),
           variant: "destructive"
         });
       }
@@ -79,6 +84,83 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
         variant: "default"
       });
     }
+  };
+
+  const adicionarCartelaIndividual = () => {
+    if (!cartelaIndividual) return;
+    
+    const numeroCartela = parseInt(cartelaIndividual);
+    if (isNaN(numeroCartela)) {
+      toast({
+        title: "Erro",
+        description: "Digite um número válido",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verificar se a cartela está disponível
+    const resultado = validarRange(numeroCartela, numeroCartela);
+    if (!resultado.valido) {
+      toast({
+        title: "Cartela indisponível",
+        description: `A cartela ${numeroCartela} não está disponível`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (cartelasSelecionadas.includes(numeroCartela)) {
+      toast({
+        title: "Aviso",
+        description: "Esta cartela já está selecionada",
+        variant: "default"
+      });
+      return;
+    }
+
+    setCartelasSelecionadas(prev => [...prev, numeroCartela].sort((a, b) => a - b));
+    setCartelaIndividual('');
+  };
+
+  const adicionarCartelasAleatorias = (quantidade: number) => {
+    if (!cartelasDisponiveis || cartelasDisponiveis.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Não há cartelas disponíveis",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Filtrar cartelas que ainda não foram selecionadas
+    const cartelasNaoSelecionadas = cartelasDisponiveis.filter(
+      cartela => !cartelasSelecionadas.includes(cartela)
+    );
+
+    if (cartelasNaoSelecionadas.length === 0) {
+      toast({
+        title: "Aviso",
+        description: "Todas as cartelas disponíveis já estão selecionadas",
+        variant: "default"
+      });
+      return;
+    }
+
+    const quantidadeParaAdicionar = Math.min(quantidade, cartelasNaoSelecionadas.length);
+    
+    // Embaralhar e pegar as primeiras N cartelas
+    const cartelasAleatorias = [...cartelasNaoSelecionadas]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, quantidadeParaAdicionar);
+
+    setCartelasSelecionadas(prev => [...prev, ...cartelasAleatorias].sort((a, b) => a - b));
+    
+    toast({
+      title: "Cartelas adicionadas",
+      description: `${quantidadeParaAdicionar} cartela(s) aleatória(s) adicionada(s)`,
+      variant: "default"
+    });
   };
 
   const removerCartela = (cartela: number) => {
@@ -204,18 +286,84 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
                       </Alert>
                     )
                   )
-                ) : (
-                  'erro' in rangeValidation && (
-                    <Alert variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        {rangeValidation.erro}
-                      </AlertDescription>
-                    </Alert>
-                  )
-                )}
+                 ) : (
+                   'erro' in rangeValidation && (
+                     <Alert variant="destructive">
+                       <AlertTriangle className="h-4 w-4" />
+                       <AlertDescription>
+                         {String(rangeValidation.erro)}
+                       </AlertDescription>
+                     </Alert>
+                   )
+                 )}
               </div>
             )}
+           </div>
+
+          {/* Seleção Individual */}
+          <div className="space-y-3">
+            <Label>Adicionar Cartela Individual</Label>
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  placeholder="Número da cartela"
+                  value={cartelaIndividual}
+                  onChange={(e) => setCartelaIndividual(e.target.value)}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={adicionarCartelaIndividual}
+                disabled={!cartelaIndividual}
+              >
+                Adicionar
+              </Button>
+            </div>
+          </div>
+
+          {/* Seleção Aleatória */}
+          <div className="space-y-3">
+            <Label>Adicionar Cartelas Aleatórias</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => adicionarCartelasAleatorias(5)}
+                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
+              >
+                +5 Aleatórias
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => adicionarCartelasAleatorias(10)}
+                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
+              >
+                +10 Aleatórias
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => adicionarCartelasAleatorias(20)}
+                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0}
+              >
+                +20 Aleatórias
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCartelasSelecionadas([])}
+                disabled={cartelasSelecionadas.length === 0}
+              >
+                Limpar Todas
+              </Button>
+            </div>
           </div>
 
           {cartelasSelecionadas.length > 0 && (
