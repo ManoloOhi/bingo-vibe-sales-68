@@ -103,69 +103,77 @@ const VendedorCard = ({ vendedor }: { vendedor: Vendedor }) => {
   
   return (
     <Card className="p-4 shadow-[var(--shadow-card)] hover:shadow-lg transition-shadow">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-foreground">{vendedor.nome}</h3>
-            <Badge className={performanceBadge.color}>
-              {performanceBadge.text}
+      <div className="space-y-3">
+        {/* Header do vendedor */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="font-semibold text-foreground truncate">{vendedor.nome}</h3>
+              <Badge className={performanceBadge.color}>
+                {performanceBadge.text}
+              </Badge>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Phone size={12} className="text-muted-foreground flex-shrink-0" />
+                <span className="text-xs text-muted-foreground truncate">{vendedor.whatsapp}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Mail size={12} className="text-muted-foreground flex-shrink-0" />
+                <span className="text-xs text-muted-foreground truncate">{vendedor.email}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Métricas de Performance */}
+        <div className="grid grid-cols-3 gap-2 py-3 border-y border-border">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <DollarSign size={12} className="text-success" />
+              <span className="text-xs font-medium text-muted-foreground">Total</span>
+            </div>
+            <p className="text-sm font-semibold text-success">R$ {totalVendido}</p>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <TrendingUp size={12} className="text-primary" />
+              <span className="text-xs font-medium text-muted-foreground">Cartelas</span>
+            </div>
+            <p className="text-sm font-semibold text-foreground">{cartelasVendidas}</p>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Package size={12} className="text-orange-500" />
+              <span className="text-xs font-medium text-muted-foreground">Vendas</span>
+            </div>
+            <p className="text-sm font-semibold text-foreground">{totalVendas}</p>
+          </div>
+        </div>
+        
+        {/* Footer com pedidos e ações */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="flex items-center gap-1 text-primary">
+              <Package size={14} className="flex-shrink-0" />
+              <span className="text-sm font-medium">{pedidosAbertos}</span>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {vendedor.ativo ? 'aberto' : 'inativo'}
             </Badge>
           </div>
-          <div className="flex items-center gap-1 mt-1">
-            <Phone size={12} className="text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">{vendedor.whatsapp}</span>
+          <div className="flex gap-1 flex-shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`/vendedores/${vendedor.id}/detalhes`)}
+              className="h-8 w-8 p-0"
+            >
+              <Eye size={14} />
+            </Button>
+            <EditVendedorForm vendedor={vendedor} />
+            <DeleteVendedorForm vendedor={vendedor} pedidosAtivos={pedidosAbertos} />
           </div>
-          <div className="flex items-center gap-1 mt-1">
-            <Mail size={12} className="text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">{vendedor.email}</span>
-          </div>
-        </div>
-      </div>
-      
-      {/* Métricas de Performance */}
-      <div className="grid grid-cols-3 gap-3 py-3 border-y border-border">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <DollarSign size={14} className="text-success" />
-            <span className="text-xs font-medium text-muted-foreground">Total</span>
-          </div>
-          <p className="text-sm font-semibold text-success">R$ {totalVendido}</p>
-        </div>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <TrendingUp size={14} className="text-primary" />
-            <span className="text-xs font-medium text-muted-foreground">Cartelas</span>
-          </div>
-          <p className="text-sm font-semibold text-foreground">{cartelasVendidas}</p>
-        </div>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Package size={14} className="text-orange-500" />
-            <span className="text-xs font-medium text-muted-foreground">Vendas</span>
-          </div>
-          <p className="text-sm font-semibold text-foreground">{totalVendas}</p>
-        </div>
-      </div>
-      
-      <div className="flex items-center justify-between pt-3">
-        <div className="flex items-center gap-2">
-          <Package size={16} className="text-primary" />
-          <span className="text-sm font-medium">{pedidosAbertos} pedidos</span>
-          <Badge variant="outline" className="text-xs">
-            {vendedor.ativo ? 'aberto' : 'inativo'}
-          </Badge>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate(`/vendedores/${vendedor.id}/detalhes`)}
-            className="h-8 px-2"
-          >
-            <Eye size={14} />
-          </Button>
-          <EditVendedorForm vendedor={vendedor} />
-          <DeleteVendedorForm vendedor={vendedor} pedidosAtivos={pedidosAbertos} />
         </div>
       </div>
     </Card>
