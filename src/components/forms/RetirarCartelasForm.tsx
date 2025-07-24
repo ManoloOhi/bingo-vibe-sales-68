@@ -366,48 +366,6 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
             </div>
           </div>
 
-          {/* Seleção Aleatória */}
-          <div className="space-y-3">
-            <Label>Adicionar Cartelas Aleatórias</Label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => adicionarCartelasAleatorias(5)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0 || (estoque?.estoque || 0) === 0}
-              >
-                +5 Aleatórias
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => adicionarCartelasAleatorias(10)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0 || (estoque?.estoque || 0) === 0}
-              >
-                +10 Aleatórias
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => adicionarCartelasAleatorias(20)}
-                disabled={!cartelasDisponiveis || cartelasDisponiveis.length === 0 || (estoque?.estoque || 0) === 0}
-              >
-                +20 Aleatórias
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setCartelasSelecionadas([])}
-                disabled={cartelasSelecionadas.length === 0}
-              >
-                Limpar Todas
-              </Button>
-            </div>
-          </div>
 
           {cartelasSelecionadas.length > 0 && (
             <div className="space-y-2">
