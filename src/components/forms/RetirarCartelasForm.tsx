@@ -3,13 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Package, Minus } from 'lucide-react';
-import { PedidoService } from '@/services/realPedidoService';
-import { BingoService } from '@/services/realBingoService';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Package, Minus, AlertTriangle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useRetirarCartelas } from '@/hooks/useQueryData';
+import { useRetirarCartelas, useCartelasDisponiveis } from '@/hooks/useQueryData';
 import type { Pedido } from '@/services/realPedidoService';
 
 interface RetirarCartelasFormProps {
@@ -19,53 +17,68 @@ interface RetirarCartelasFormProps {
 
 export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartelasFormProps) {
   const [open, setOpen] = useState(false);
-  const [cartelasDisponiveis, setCartelasDisponiveis] = useState<number[]>([]);
   const [cartelasSelecionadas, setCartelasSelecionadas] = useState<number[]>([]);
   const [rangeInicio, setRangeInicio] = useState('');
   const [rangeFim, setRangeFim] = useState('');
   const { toast } = useToast();
   const retirarCartelas = useRetirarCartelas();
+  
+  // Usar o novo hook para cartelas disponíveis
+  const { cartelasDisponiveis, estatisticas, validarRange } = useCartelasDisponiveis(pedido.bingoId);
 
-  useEffect(() => {
-    const loadCartelasDisponiveis = async () => {
-      if (open) {
-        try {
-          const cartelas = await BingoService.getCartelasDisponiveis(pedido.bingoId);
-          setCartelasDisponiveis(cartelas);
-        } catch (error) {
-          console.error('Erro ao carregar cartelas:', error);
-        }
-      }
-    };
-
-    loadCartelasDisponiveis();
-  }, [open, pedido.bingoId]);
-
-  const adicionarRange = () => {
-    if (!rangeInicio || !rangeFim) return;
+  // Validação em tempo real do range
+  const rangeValidation = (() => {
+    if (!rangeInicio || !rangeFim) return null;
     
     const inicio = parseInt(rangeInicio);
     const fim = parseInt(rangeFim);
     
-    if (inicio > fim) {
-      toast({
-        title: "Erro",
-        description: "O início do range deve ser menor que o fim",
-        variant: "destructive"
-      });
+    if (isNaN(inicio) || isNaN(fim)) return null;
+    if (inicio > fim) return { valido: false, erro: 'Início deve ser menor que fim' };
+    
+    return validarRange(inicio, fim);
+  })();
+
+  const adicionarRange = () => {
+    if (!rangeValidation || !rangeValidation.valido) {
+      if (rangeValidation && 'erro' in rangeValidation) {
+        toast({
+          title: "Erro no range",
+          description: rangeValidation.erro,
+          variant: "destructive"
+        });
+      }
       return;
     }
+    
+    // Type guard para verificar se a validação tem as propriedades necessárias
+    if (!('cartelas' in rangeValidation)) return;
+    
+    const novasCartelas = rangeValidation.cartelas.filter(
+      cartela => !cartelasSelecionadas.includes(cartela)
+    );
 
-    const novasCartelas = [];
-    for (let i = inicio; i <= fim; i++) {
-      if (cartelasDisponiveis.includes(i) && !cartelasSelecionadas.includes(i)) {
-        novasCartelas.push(i);
-      }
+    if (novasCartelas.length === 0) {
+      toast({
+        title: "Aviso",
+        description: "Todas as cartelas deste range já estão selecionadas",
+        variant: "default"
+      });
+      return;
     }
 
     setCartelasSelecionadas(prev => [...prev, ...novasCartelas].sort((a, b) => a - b));
     setRangeInicio('');
     setRangeFim('');
+    
+    // Verificar se há conflitos e mostrar feedback
+    if ('conflitos' in rangeValidation && rangeValidation.conflitos.length > 0) {
+      toast({
+        title: "Range filtrado",
+        description: `${rangeValidation.conflitos.length} cartela(s) ocupada(s) foi(ram) ignorada(s): ${rangeValidation.conflitos.join(', ')}`,
+        variant: "default"
+      });
+    }
   };
 
   const removerCartela = (cartela: number) => {
@@ -121,9 +134,30 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="text-sm text-muted-foreground">
-            {cartelasDisponiveis.length} cartela(s) disponível(is)
-          </div>
+          {/* Estatísticas do Bingo */}
+          {estatisticas && (
+            <div className="bg-muted/50 p-3 rounded space-y-2">
+              <div className="text-sm font-medium">Estatísticas do Bingo</div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex justify-between">
+                  <span>Total:</span>
+                  <span className="font-medium">{estatisticas.total}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-green-600">Disponíveis:</span>
+                  <span className="font-medium text-green-600">{estatisticas.disponiveis}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-red-600">Ocupadas:</span>
+                  <span className="font-medium text-red-600">{estatisticas.ocupadas}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-blue-600">Devolvidas:</span>
+                  <span className="font-medium text-blue-600">{estatisticas.devolvidas}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             <Label>Selecionar Range</Label>
@@ -148,11 +182,46 @@ export function RetirarCartelasForm({ pedido, onCartelasUpdated }: RetirarCartel
                 type="button"
                 variant="secondary"
                 onClick={adicionarRange}
-                disabled={!rangeInicio || !rangeFim}
+                disabled={!rangeInicio || !rangeFim || (rangeValidation && !rangeValidation.valido)}
               >
                 Adicionar
               </Button>
             </div>
+            
+            {/* Feedback visual do range */}
+            {rangeValidation && (
+              <div className="space-y-2">
+                {rangeValidation.valido ? (
+                  'cartelas' in rangeValidation && rangeValidation.conflitos.length > 0 ? (
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        Range parcialmente disponível: {rangeValidation.cartelas.length} de {parseInt(rangeFim) - parseInt(rangeInicio) + 1} cartelas podem ser retiradas.
+                        Conflitos: {rangeValidation.conflitos.join(', ')}
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    'cartelas' in rangeValidation && (
+                      <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertDescription>
+                          Range disponível: {rangeValidation.cartelas.length} cartela(s) podem ser retiradas.
+                        </AlertDescription>
+                      </Alert>
+                    )
+                  )
+                ) : (
+                  'erro' in rangeValidation && (
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        {rangeValidation.erro}
+                      </AlertDescription>
+                    </Alert>
+                  )
+                )}
+              </div>
+            )}
           </div>
 
           {cartelasSelecionadas.length > 0 && (

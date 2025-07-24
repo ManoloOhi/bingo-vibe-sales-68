@@ -322,6 +322,111 @@ export const useUpdatePedido = () => {
 };
 
 // ========================================
+// 🎫 CARTELAS DISPONÍVEIS HOOK
+// ========================================
+export const useCartelasDisponiveis = (bingoId: string) => {
+  const { data: bingo } = useBingo(bingoId);
+  const { data: pedidosDoBingo } = usePedidosByBingo(bingoId);
+  
+  return {
+    cartelasDisponiveis: (() => {
+      if (!bingo || !pedidosDoBingo) return [];
+      
+      // Gerar todas as cartelas do bingo baseado no range
+      const todasCartelas = new Set<number>();
+      for (let i = bingo.rangeInicio; i <= bingo.rangeFim; i++) {
+        todasCartelas.add(i);
+      }
+      
+      // Calcular cartelas ocupadas por TODOS os vendedores
+      const cartelasOcupadas = new Set<number>();
+      const cartelasDevolvidas = new Set<number>();
+      
+      pedidosDoBingo.forEach(pedido => {
+        // Cartelas retiradas (ocupadas)
+        pedido.cartelasRetiradas.forEach(cartela => {
+          cartelasOcupadas.add(cartela);
+        });
+        
+        // Cartelas devolvidas (liberam as ocupadas)
+        pedido.cartelasDevolvidas.forEach(cartela => {
+          cartelasDevolvidas.add(cartela);
+        });
+      });
+      
+      // Cartelas disponíveis = Todas - (Ocupadas - Devolvidas)
+      const disponiveis = Array.from(todasCartelas).filter(cartela => {
+        const estaOcupada = cartelasOcupadas.has(cartela);
+        const foiDevolvida = cartelasDevolvidas.has(cartela);
+        // Disponível se nunca foi retirada OU se foi devolvida
+        return !estaOcupada || foiDevolvida;
+      });
+      
+      return disponiveis.sort((a, b) => a - b);
+    })(),
+    
+    estatisticas: (() => {
+      if (!bingo || !pedidosDoBingo) return null;
+      
+      const totalCartelas = bingo.rangeFim - bingo.rangeInicio + 1;
+      
+      const cartelasRetiradas = new Set<number>();
+      const cartelasDevolvidas = new Set<number>();
+      
+      pedidosDoBingo.forEach(pedido => {
+        pedido.cartelasRetiradas.forEach(cartela => cartelasRetiradas.add(cartela));
+        pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
+      });
+      
+      const ocupadas = cartelasRetiradas.size - cartelasDevolvidas.size;
+      const disponiveis = totalCartelas - ocupadas;
+      
+      return {
+        total: totalCartelas,
+        disponiveis,
+        ocupadas,
+        devolvidas: cartelasDevolvidas.size
+      };
+    })(),
+    
+    validarRange: (inicio: number, fim: number) => {
+      if (!bingo || !pedidosDoBingo) return { valido: false, cartelas: [], conflitos: [] };
+      
+      const rangeCartelas = [];
+      for (let i = inicio; i <= fim; i++) {
+        rangeCartelas.push(i);
+      }
+      
+      const cartelasOcupadas = new Set<number>();
+      const cartelasDevolvidas = new Set<number>();
+      
+      pedidosDoBingo.forEach(pedido => {
+        pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+        pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
+      });
+      
+      const cartelasDisponiveis = rangeCartelas.filter(cartela => {
+        const estaOcupada = cartelasOcupadas.has(cartela);
+        const foiDevolvida = cartelasDevolvidas.has(cartela);
+        return !estaOcupada || foiDevolvida;
+      });
+      
+      const conflitos = rangeCartelas.filter(cartela => {
+        const estaOcupada = cartelasOcupadas.has(cartela);
+        const foiDevolvida = cartelasDevolvidas.has(cartela);
+        return estaOcupada && !foiDevolvida;
+      });
+      
+      return {
+        valido: conflitos.length === 0,
+        cartelas: cartelasDisponiveis,
+        conflitos
+      };
+    }
+  };
+};
+
+// ========================================
 // 🔄 INVALIDATION UTILITIES
 // ========================================
 export const useInvalidateAll = () => {

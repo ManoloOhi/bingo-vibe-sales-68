@@ -70,7 +70,37 @@ export class PedidoService {
     const pedido = await this.findById(pedidoId);
     if (!pedido) throw new Error('Pedido não encontrado');
 
-    // Atualizar pedido
+    // VALIDAÇÃO: Verificar se as cartelas estão realmente disponíveis
+    const todosPedidosDoBingo = await this.findByBingo(pedido.bingoId);
+    const cartelasOcupadas = new Set<number>();
+    const cartelasDevolvidas = new Set<number>();
+    
+    todosPedidosDoBingo.forEach(p => {
+      p.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+      p.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
+    });
+    
+    // Verificar se alguma cartela está ocupada e não foi devolvida
+    const cartelasIndisponiveis = cartelas.filter(cartela => {
+      const estaOcupada = cartelasOcupadas.has(cartela);  
+      const foiDevolvida = cartelasDevolvidas.has(cartela);
+      return estaOcupada && !foiDevolvida;
+    });
+    
+    if (cartelasIndisponiveis.length > 0) {
+      throw new Error(`Cartelas não disponíveis: ${cartelasIndisponiveis.join(', ')}. Elas já foram retiradas por outro vendedor.`);
+    }
+    
+    // Verificar se alguma cartela já foi retirada pelo próprio vendedor
+    const cartelasJaRetiradas = cartelas.filter(cartela => 
+      pedido.cartelasRetiradas.includes(cartela)
+    );
+    
+    if (cartelasJaRetiradas.length > 0) {
+      throw new Error(`Cartelas já retiradas por este vendedor: ${cartelasJaRetiradas.join(', ')}`);
+    }
+
+    // Atualizar pedido apenas com cartelas válidas
     const cartelasRetiradas = [...pedido.cartelasRetiradas, ...cartelas];
     const cartelasPendentes = [...pedido.cartelasPendentes, ...cartelas];
 
