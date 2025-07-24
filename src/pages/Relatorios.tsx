@@ -1,6 +1,7 @@
 import { PageLayout } from '@/components/Layout/PageLayout';
 import { Card } from '@/components/ui/card';
-import { TrendingUp, DollarSign, Package, Users, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { TrendingUp, DollarSign, Package, Users, Loader2, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { VendedorService } from '@/services/realVendedorService';
 import { PedidoService } from '@/services/realPedidoService';
@@ -19,6 +20,11 @@ export default function Relatorios() {
     nome: string;
     vendas: number;
     percentual: number;
+  }>>([]);
+  const [bingosDetalhes, setBingosDetalhes] = useState<Array<{
+    nome: string;
+    valorEsperado: number;
+    quantidadeCartelas: number;
   }>>([]);
 
   useEffect(() => {
@@ -57,17 +63,26 @@ export default function Relatorios() {
           return total;
         }, 0);
         
-        // Calcular valor esperado (cartelas retiradas x valor)
-        const valorEsperado = pedidos.reduce((total, pedido) => {
-          const bingo = bingosMap[pedido.bingoId];
-          if (bingo && bingo.valorCartela) {
+        // Calcular valor esperado (valor da cartela x quantidade total de cartelas do bingo)
+        const valorEsperado = bingos.reduce((total, bingo) => {
+          if (bingo.valorCartela && bingo.quantidadeCartelas) {
             const valorCartela = parseFloat(bingo.valorCartela);
             if (!isNaN(valorCartela) && valorCartela > 0) {
-              return total + (pedido.cartelasRetiradas.length * valorCartela);
+              return total + (valorCartela * bingo.quantidadeCartelas);
             }
           }
           return total;
         }, 0);
+
+        // Calcular detalhes de cada bingo para a modal
+        const bingosDetalhesArray = bingos.map(bingo => {
+          const valorCartela = parseFloat(bingo.valorCartela) || 0;
+          return {
+            nome: bingo.nome,
+            valorEsperado: valorCartela * bingo.quantidadeCartelas,
+            quantidadeCartelas: bingo.quantidadeCartelas
+          };
+        }).filter(item => item.valorEsperado > 0);
         
         // Calcular taxa de conversão
         const taxaConversao = totalCartelasRetiradas > 0 ? (totalCartelasVendidas / totalCartelasRetiradas) * 100 : 0;
@@ -104,6 +119,7 @@ export default function Relatorios() {
         });
 
         setVendedoresStats(vendedoresStatsArray);
+        setBingosDetalhes(bingosDetalhesArray);
       } catch (error) {
         console.error('Erro ao carregar relatórios:', error);
       } finally {
@@ -144,11 +160,48 @@ export default function Relatorios() {
             <p className="text-xl font-bold text-foreground">R$ {(stats.totalRecebido || 0).toFixed(2)}</p>
           </Card>
           
-          <Card className="p-4 text-center shadow-[var(--shadow-card)]">
-            <TrendingUp size={24} className="text-warning mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Valor Esperado</p>
-            <p className="text-xl font-bold text-foreground">R$ {(stats.valorEsperado || 0).toFixed(2)}</p>
-          </Card>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Card className="p-4 text-center shadow-[var(--shadow-card)] cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <TrendingUp size={24} className="text-warning" />
+                  <Eye size={16} className="text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">Valor Esperado</p>
+                <p className="text-xl font-bold text-foreground">R$ {(stats.valorEsperado || 0).toFixed(2)}</p>
+              </Card>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Detalhes do Valor Esperado</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  {bingosDetalhes.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">Nenhum bingo cadastrado ainda</p>
+                  ) : (
+                    bingosDetalhes.map((bingo, i) => (
+                      <div key={i} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">{bingo.nome}</p>
+                          <p className="text-xs text-muted-foreground">{bingo.quantidadeCartelas} cartelas</p>
+                        </div>
+                        <p className="font-bold text-primary">R$ {bingo.valorEsperado.toFixed(2)}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {bingosDetalhes.length > 0 && (
+                  <div className="pt-3 border-t border-border">
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">Total Esperado:</p>
+                      <p className="text-lg font-bold text-primary">R$ {(stats.valorEsperado || 0).toFixed(2)}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           
           <Card className="p-4 text-center shadow-[var(--shadow-card)]">
             <Package size={24} className="text-primary mx-auto mb-2" />
