@@ -31,6 +31,15 @@ export default function Relatorios() {
     totalRecebido: number;
     cartelasVendidas: number;
   }>>([]);
+  const [cartelasVendidasDetalhes, setCartelasVendidasDetalhes] = useState<Array<{
+    nome: string;
+    cartelasVendidas: number;
+  }>>([]);
+  const [vendedoresDetalhes, setVendedoresDetalhes] = useState<Array<{
+    nome: string;
+    bingos: string[];
+    status: string;
+  }>>([]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -111,6 +120,38 @@ export default function Relatorios() {
           };
         }).filter(item => item.cartelasVendidas > 0);
         
+        // Calcular detalhes de cartelas vendidas por bingo para a modal
+        const cartelasVendidasDetalhesArray = bingos.map(bingo => {
+          const cartelasVendidasBingo = pedidos
+            .filter(p => p.bingoId === bingo.id)
+            .reduce((total, p) => total + p.cartelasVendidas.length, 0);
+          
+          return {
+            nome: bingo.nome,
+            cartelasVendidas: cartelasVendidasBingo
+          };
+        }).filter(item => item.cartelasVendidas > 0);
+
+        // Calcular detalhes dos vendedores com seus bingos
+        const vendedoresDetalhesArray = vendedores.map(vendedor => {
+          // Encontrar pedidos abertos deste vendedor
+          const pedidosVendedor = pedidos.filter(p => p.vendedorId === vendedor.id && p.status === 'aberto');
+          
+          // Extrair bingos únicos onde o vendedor tem cartelas
+          const bingosVendedor = [...new Set(
+            pedidosVendedor
+              .filter(p => p.cartelasPendentes.length > 0 || p.cartelasRetiradas.length > 0)
+              .map(p => bingosMap[p.bingoId]?.nome)
+              .filter(Boolean)
+          )];
+          
+          return {
+            nome: vendedor.nome,
+            bingos: bingosVendedor,
+            status: bingosVendedor.length > 0 ? bingosVendedor.join(', ') : 'Livre'
+          };
+        });
+        
         // Calcular taxa de conversão
         const taxaConversao = totalCartelasRetiradas > 0 ? (totalCartelasVendidas / totalCartelasRetiradas) * 100 : 0;
 
@@ -148,6 +189,8 @@ export default function Relatorios() {
         setVendedoresStats(vendedoresStatsArray);
         setBingosDetalhes(bingosDetalhesArray);
         setVendasDetalhes(vendasDetalhesArray);
+        setCartelasVendidasDetalhes(cartelasVendidasDetalhesArray);
+        setVendedoresDetalhes(vendedoresDetalhesArray);
       } catch (error) {
         console.error('Erro ao carregar relatórios:', error);
       } finally {
@@ -274,17 +317,97 @@ export default function Relatorios() {
             </DialogContent>
           </Dialog>
           
-          <Card className="p-4 text-center shadow-[var(--shadow-card)]">
-            <Package size={24} className="text-primary mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Cartelas Vendidas</p>
-            <p className="text-xl font-bold text-foreground">{stats.cartelasVendidas}</p>
-          </Card>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Card className="p-4 text-center shadow-[var(--shadow-card)] cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Package size={24} className="text-primary" />
+                  <Eye size={16} className="text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">Cartelas Vendidas</p>
+                <p className="text-xl font-bold text-foreground">{stats.cartelasVendidas}</p>
+              </Card>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Detalhes das Cartelas Vendidas</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Quantidade de cartelas vendidas por bingo.
+                </p>
+                <div className="space-y-3">
+                  {cartelasVendidasDetalhes.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">Nenhuma cartela vendida ainda</p>
+                  ) : (
+                    cartelasVendidasDetalhes.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">{item.nome}</p>
+                        </div>
+                        <p className="font-bold text-foreground">{item.cartelasVendidas} cartelas</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {cartelasVendidasDetalhes.length > 0 && (
+                  <div className="pt-3 border-t border-border">
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">Total de Cartelas:</p>
+                      <p className="text-lg font-bold text-foreground">{stats.cartelasVendidas}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           
-          <Card className="p-4 text-center shadow-[var(--shadow-card)]">
-            <Users size={24} className="text-accent mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Vendedores Ativos</p>
-            <p className="text-xl font-bold text-foreground">{stats.vendedoresAtivos}</p>
-          </Card>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Card className="p-4 text-center shadow-[var(--shadow-card)] cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Users size={24} className="text-accent" />
+                  <Eye size={16} className="text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">Vendedores Ativos</p>
+                <p className="text-xl font-bold text-foreground">{stats.vendedoresAtivos}</p>
+              </Card>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Detalhes dos Vendedores</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Lista de vendedores e seus bingos ativos. Vendedores sem cartelas aparecem como "Livre".
+                </p>
+                <div className="space-y-3">
+                  {vendedoresDetalhes.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">Nenhum vendedor cadastrado ainda</p>
+                  ) : (
+                    vendedoresDetalhes.map((vendedor, i) => (
+                      <div key={i} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">{vendedor.nome}</p>
+                        </div>
+                        <p className={`font-bold text-sm ${vendedor.status === 'Livre' ? 'text-muted-foreground' : 'text-foreground'}`}>
+                          {vendedor.status}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {vendedoresDetalhes.length > 0 && (
+                  <div className="pt-3 border-t border-border">
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">Total de Vendedores:</p>
+                      <p className="text-lg font-bold text-foreground">{vendedoresDetalhes.length}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <Card className="p-4 shadow-[var(--shadow-card)]">
