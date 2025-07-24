@@ -60,31 +60,33 @@ export default function BingoDetalhes() {
     <PageLayout title="Detalhes do Bingo" subtitle="">
       <div className="space-y-6">
         {/* Header consolidado */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => navigate('/bingos')}
+              className="flex items-center gap-2"
             >
-              <ArrowLeft size={16} className="mr-2" />
+              <ArrowLeft size={16} />
               Voltar
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{bingo.nome}</h1>
-              <p className="text-sm text-muted-foreground">
-                Cartelas: {String(bingo.rangeInicio).padStart(3, '0')}-{String(bingo.rangeFim).padStart(3, '0')} • {format(new Date(bingo.dataBingo), "dd/MM/yyyy")}
-              </p>
+            <div className="flex items-center gap-2">
+              <DownloadBingoReportButton 
+                bingoId={bingo.id} 
+                bingoNome={bingo.nome} 
+              />
+              <Badge variant="secondary" className={bingo.ativo ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
+                {bingo.ativo ? 'Ativo' : 'Inativo'}
+              </Badge>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <DownloadBingoReportButton 
-              bingoId={bingo.id} 
-              bingoNome={bingo.nome} 
-            />
-            <Badge variant="secondary" className={bingo.ativo ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
-              {bingo.ativo ? 'Ativo' : 'Inativo'}
-            </Badge>
+          
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold text-foreground">{bingo.nome}</h1>
+            <p className="text-sm text-muted-foreground">
+              Cartelas: {String(bingo.rangeInicio).padStart(3, '0')}-{String(bingo.rangeFim).padStart(3, '0')} • {format(new Date(bingo.dataBingo), "dd/MM/yyyy")}
+            </p>
           </div>
         </div>
 
