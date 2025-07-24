@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Trash2, Info, RefreshCw } from 'lucide-react'
+import { Trash2, Info, RefreshCw, Eye } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { clearAppCache, getCacheInfo, debugCache } from '@/utils/cacheUtils'
+import { CacheViewer } from '@/components/ui/cache-viewer'
 import { useToast } from '@/hooks/use-toast'
 
 export function CacheDebug() {
   const [isVisible, setIsVisible] = useState(false)
+  const [showViewer, setShowViewer] = useState(false)
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [cacheInfo, setCacheInfo] = useState(getCacheInfo())
@@ -94,7 +96,16 @@ export function CacheDebug() {
             className="flex-1"
           >
             <RefreshCw size={14} />
-            Atualizar
+            Info
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowViewer(!showViewer)}
+            className="flex-1"
+          >
+            <Eye size={14} />
+            Ver
           </Button>
           <Button
             variant="outline"
@@ -115,6 +126,12 @@ export function CacheDebug() {
             Limpar
           </Button>
         </div>
+
+        {showViewer && (
+          <div className="mt-4 border-t pt-4">
+            <CacheViewer />
+          </div>
+        )}
       </div>
     </Card>
   )

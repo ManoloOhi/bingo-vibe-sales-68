@@ -30,9 +30,22 @@ export const getCacheInfo = () => {
 // Função para debug do cache
 export const debugCache = () => {
   const info = getCacheInfo();
+  const sessionKeys = Object.keys(sessionStorage);
+  
   console.log('🔍 Cache Info:', {
     ...info,
     cacheSizeKB: Math.round(info.cacheSize / 1024 * 100) / 100,
-    sessionStorageUsage: `${Object.keys(sessionStorage).length} items`
+    sessionStorageUsage: `${sessionKeys.length} items`,
+    sessionStorageKeys: sessionKeys,
+    cacheContent: sessionStorage.getItem('BINGO_CACHE_KEY') ? 'Dados presentes' : 'Vazio'
+  });
+  
+  // Mostrar o que está armazenado especificamente
+  console.log('📦 Dados em Cache (SessionStorage):');
+  sessionKeys.forEach(key => {
+    const value = sessionStorage.getItem(key);
+    if (value) {
+      console.log(`- ${key}: ${Math.round(new Blob([value]).size / 1024 * 100) / 100} KB`);
+    }
   });
 };
