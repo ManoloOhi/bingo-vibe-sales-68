@@ -351,19 +351,19 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
-      (pedidosDoBingo || []).forEach(pedido => {
+      pedidosDoBingo.forEach(pedido => {
         // Cartelas retiradas (ocupadas temporariamente)
-        (pedido.cartelasRetiradas || []).forEach(cartela => {
+        pedido.cartelasRetiradas.forEach(cartela => {
           cartelasOcupadas.add(cartela);
         });
         
         // Cartelas vendidas (ocupadas permanentemente)
-        (pedido.cartelasVendidas || []).forEach(cartela => {
+        pedido.cartelasVendidas.forEach(cartela => {
           cartelasVendidas.add(cartela);
         });
         
         // Cartelas devolvidas (liberam apenas as retiradas, não as vendidas)
-        (pedido.cartelasDevolvidas || []).forEach(cartela => {
+        pedido.cartelasDevolvidas.forEach(cartela => {
           cartelasDevolvidas.add(cartela);
         });
       });
@@ -391,10 +391,10 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
-      (pedidosDoBingo || []).forEach(pedido => {
-        (pedido.cartelasRetiradas || []).forEach(cartela => cartelasOcupadas.add(cartela));
-        (pedido.cartelasVendidas || []).forEach(cartela => cartelasVendidas.add(cartela));
-        (pedido.cartelasDevolvidas || []).forEach(cartela => cartelasDevolvidas.add(cartela));
+      pedidosDoBingo.forEach(pedido => {
+        pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+        pedido.cartelasVendidas.forEach(cartela => cartelasVendidas.add(cartela));
+        pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
       });
       
       // Cartelas indisponíveis = (ocupadas - devolvidas) + vendidas
@@ -414,10 +414,10 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
-      (pedidosDoBingo || []).forEach(pedido => {
-        (pedido.cartelasRetiradas || []).forEach(cartela => cartelasOcupadas.add(cartela));
-        (pedido.cartelasVendidas || []).forEach(cartela => cartelasVendidas.add(cartela));
-        (pedido.cartelasDevolvidas || []).forEach(cartela => cartelasDevolvidas.add(cartela));
+      pedidosDoBingo.forEach(pedido => {
+        pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+        pedido.cartelasVendidas.forEach(cartela => cartelasVendidas.add(cartela));
+        pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
       });
       
       // Cartelas indisponíveis = (ocupadas - devolvidas) + vendidas
@@ -471,10 +471,10 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
-      (pedidosDoBingo || []).forEach(pedido => {
-        (pedido.cartelasRetiradas || []).forEach(cartela => cartelasOcupadas.add(cartela));
-        (pedido.cartelasVendidas || []).forEach(cartela => cartelasVendidas.add(cartela));
-        (pedido.cartelasDevolvidas || []).forEach(cartela => cartelasDevolvidas.add(cartela));
+      pedidosDoBingo.forEach(pedido => {
+        pedido.cartelasRetiradas.forEach(cartela => cartelasOcupadas.add(cartela));
+        pedido.cartelasVendidas.forEach(cartela => cartelasVendidas.add(cartela));
+        pedido.cartelasDevolvidas.forEach(cartela => cartelasDevolvidas.add(cartela));
       });
       
       const cartelasDisponiveis = rangeCartelas.filter(cartela => {

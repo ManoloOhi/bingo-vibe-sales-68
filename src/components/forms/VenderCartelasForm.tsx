@@ -22,7 +22,7 @@ export function VenderCartelasForm({ pedido, onCartelasUpdated }: VenderCartelas
   const { data: estoque } = useBingoEstoque(pedido.bingoId);
 
   // Cartelas disponíveis para venda (pendentes)
-  const cartelasDisponiveis = pedido.cartelasPendentes || [];
+  const cartelasDisponiveis = pedido.cartelasPendentes;
 
   const getCartelasNoRange = (inicio: number, fim: number): number[] => {
     const min = Math.min(inicio, fim);

@@ -39,10 +39,10 @@ export default function Relatorios() {
     }
 
     // Calcular total de cartelas vendidas
-    const totalCartelasVendidas = pedidos.reduce((total, p) => total + (p.cartelasVendidas || []).length, 0);
+    const totalCartelasVendidas = pedidos.reduce((total, p) => total + p.cartelasVendidas.length, 0);
     
     // Calcular total de cartelas retiradas
-    const totalCartelasRetiradas = pedidos.reduce((total, p) => total + (p.cartelasRetiradas || []).length, 0);
+    const totalCartelasRetiradas = pedidos.reduce((total, p) => total + p.cartelasRetiradas.length, 0);
     
     // Calcular vendedores ativos (com pedidos abertos)
     const vendedoresComPedidos = new Set(pedidos.filter(p => p.status === 'aberto').map(p => p.vendedorId));
@@ -59,7 +59,7 @@ export default function Relatorios() {
       if (bingo && bingo.valorCartela) {
         const valorCartela = parseFloat(bingo.valorCartela);
         if (!isNaN(valorCartela) && valorCartela > 0) {
-          return total + ((pedido.cartelasVendidas || []).length * valorCartela);
+          return total + (pedido.cartelasVendidas.length * valorCartela);
         }
       }
       return total;
@@ -92,7 +92,7 @@ export default function Relatorios() {
           // Somar cartelas vendidas deste bingo específico
           const cartelasVendidasBingo = pedidos
             .filter(p => p.bingoId === bingo.id)
-            .reduce((total, p) => total + (p.cartelasVendidas || []).length, 0);
+            .reduce((total, p) => total + p.cartelasVendidas.length, 0);
           
           return {
             nome: bingo.nome,
@@ -105,7 +105,7 @@ export default function Relatorios() {
         const cartelasVendidasDetalhesArray = bingos.map(bingo => {
           const cartelasVendidasBingo = pedidos
             .filter(p => p.bingoId === bingo.id)
-            .reduce((total, p) => total + (p.cartelasVendidas || []).length, 0);
+            .reduce((total, p) => total + p.cartelasVendidas.length, 0);
           
           return {
             nome: bingo.nome,
@@ -121,7 +121,7 @@ export default function Relatorios() {
           // Extrair bingos únicos onde o vendedor tem cartelas
           const bingosVendedor = [...new Set(
             pedidosVendedor
-              .filter(p => (p.cartelasPendentes || []).length > 0 || (p.cartelasRetiradas || []).length > 0)
+              .filter(p => p.cartelasPendentes.length > 0 || p.cartelasRetiradas.length > 0)
               .map(p => bingosMap[p.bingoId]?.nome)
               .filter(Boolean)
           )];
@@ -147,7 +147,7 @@ export default function Relatorios() {
           if (!acc[vendedorNome]) {
             acc[vendedorNome] = 0;
           }
-          acc[vendedorNome] += (pedido.cartelasVendidas || []).length;
+          acc[vendedorNome] += pedido.cartelasVendidas.length;
           return acc;
         }, {} as Record<string, number>);
 

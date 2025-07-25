@@ -21,8 +21,8 @@ export function DevolverCartelasForm({ pedido, onCartelasUpdated }: DevolverCart
   const devolverCartelas = useDevolverCartelas();
 
   // Cartelas disponíveis para devolução = apenas pendentes (não vendidas)
-  const cartelasDisponiveis = (pedido.cartelasPendentes || [])
-    .filter(c => !(pedido.cartelasDevolvidas || []).includes(c))
+  const cartelasDisponiveis = pedido.cartelasPendentes
+    .filter(c => !pedido.cartelasDevolvidas.includes(c))
     .sort((a, b) => a - b);
 
   const getCartelasNoRange = (inicio: number, fim: number): number[] => {
