@@ -137,6 +137,12 @@ class ApiService {
     });
   }
 
+  static async deletePedido(id: string) {
+    return this.request(`/pedidos/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // ========================================
   // 📊 DASHBOARD & RELATÓRIOS
   // ========================================

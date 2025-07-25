@@ -204,4 +204,23 @@ export class PedidoService {
 
     return resultado;
   }
+
+  static async delete(id: string): Promise<void> {
+    const pedidos = this.getPedidos();
+    const pedido = pedidos.find(p => p.id === id);
+    
+    if (!pedido) {
+      throw new Error('Pedido não encontrado');
+    }
+
+    // Verificar se há cartelas pendentes
+    const cartelasPendentes = pedido.cartelasPendentes || [];
+    
+    if (cartelasPendentes.length > 0) {
+      throw new Error('Não é possível excluir pedido com cartelas pendentes');
+    }
+
+    const updatedPedidos = pedidos.filter(p => p.id !== id);
+    this.savePedidos(updatedPedidos);
+  }
 }

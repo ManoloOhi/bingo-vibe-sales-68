@@ -222,4 +222,8 @@ export class PedidoService {
       pendentes: 0
     });
   }
+
+  static async delete(id: string): Promise<void> {
+    await ApiService.deletePedido(id);
+  }
 }

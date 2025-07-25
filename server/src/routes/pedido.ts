@@ -144,3 +144,54 @@ pedidoRoutes.put('/:id', verifyToken, async (req: AuthenticatedRequest, res) => 
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
+
+// DELETE /api/pedidos/:id
+pedidoRoutes.delete('/:id', verifyToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    // Primeiro, buscar o pedido para verificar permissões e cartelas pendentes
+    let pedidoExistente;
+    
+    if (req.user?.tipo === 'admin') {
+      [pedidoExistente] = await db
+        .select()
+        .from(pedidos)
+        .where(eq(pedidos.id, req.params.id));
+    } else {
+      // Usuários comuns só podem deletar pedidos de seus vendedores
+      [pedidoExistente] = await db
+        .select()
+        .from(pedidos)
+        .innerJoin(vendedores, eq(pedidos.vendedorId, vendedores.id))
+        .where(eq(pedidos.id, req.params.id))
+        .where(eq(vendedores.userId, req.user.userId));
+    }
+
+    if (!pedidoExistente) {
+      return res.status(404).json({ error: 'Pedido não encontrado' });
+    }
+
+    // Verificar se há cartelas pendentes
+    const cartelasPendentes = pedidoExistente.cartelasPendentes || [];
+    
+    if (cartelasPendentes.length > 0) {
+      return res.status(400).json({
+        error: 'Não é possível excluir pedido com cartelas pendentes',
+        details: {
+          cartelasPendentes: cartelasPendentes.length,
+          cartelas: cartelasPendentes,
+          observacao: 'Todas as cartelas retiradas devem estar vendidas ou devolvidas antes da exclusão'
+        }
+      });
+    }
+
+    // Deletar o pedido
+    await db
+      .delete(pedidos)
+      .where(eq(pedidos.id, req.params.id));
+
+    res.json({ message: 'Pedido excluído com sucesso' });
+  } catch (error) {
+    console.error('Erro ao excluir pedido:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
