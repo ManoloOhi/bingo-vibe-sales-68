@@ -1,6 +1,5 @@
 import { User, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ApiStatus } from '@/components/ui/api-status';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -26,10 +25,7 @@ export function Header({ title, subtitle }: HeaderProps) {
         <div className="flex-1">
           <h1 className="text-lg font-semibold text-foreground">{title}</h1>
           {subtitle && (
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">{subtitle}</p>
-              <ApiStatus />
-            </div>
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
           )}
         </div>
         
