@@ -95,34 +95,34 @@ export default function Pedidos() {
                       <div>
                         <span className="font-medium">Pendentes:</span>
                         <Badge variant="secondary" className="ml-2">
-                          {pedido.cartelasPendentes.length}
+                          {(pedido.cartelasPendentes || []).length}
                         </Badge>
                       </div>
                       <div>
                         <span className="font-medium">Vendidas:</span>
                         <Badge variant="default" className="ml-2">
-                          {pedido.cartelasVendidas.length}
+                          {(pedido.cartelasVendidas || []).length}
                         </Badge>
                       </div>
                       <div>
                         <span className="font-medium">Devolvidas:</span>
                         <Badge variant="destructive" className="ml-2">
-                          {pedido.cartelasDevolvidas.length}
+                          {(pedido.cartelasDevolvidas || []).length}
                         </Badge>
                       </div>
                     </div>
 
-                    {pedido.cartelasRetiradas.length > 0 && (
+                    {(pedido.cartelasRetiradas || []).length > 0 && (
                       <div>
                         <p className="text-xs text-muted-foreground mb-2">Cartelas Retiradas:</p>
                         <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
-                          {pedido.cartelasRetiradas.map(cartela => (
+                          {(pedido.cartelasRetiradas || []).map(cartela => (
                             <Badge
                               key={cartela}
                               variant={
-                                pedido.cartelasVendidas.includes(cartela) 
+                                (pedido.cartelasVendidas || []).includes(cartela) 
                                   ? "default" 
-                                  : pedido.cartelasDevolvidas.includes(cartela)
+                                  : (pedido.cartelasDevolvidas || []).includes(cartela)
                                   ? "destructive"
                                   : "secondary"
                               }
