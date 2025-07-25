@@ -351,7 +351,7 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
-      pedidosDoBingo.forEach(pedido => {
+      (pedidosDoBingo || []).forEach(pedido => {
         // Cartelas retiradas (ocupadas temporariamente)
         (pedido.cartelasRetiradas || []).forEach(cartela => {
           cartelasOcupadas.add(cartela);
@@ -391,7 +391,7 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
-      pedidosDoBingo.forEach(pedido => {
+      (pedidosDoBingo || []).forEach(pedido => {
         (pedido.cartelasRetiradas || []).forEach(cartela => cartelasOcupadas.add(cartela));
         (pedido.cartelasVendidas || []).forEach(cartela => cartelasVendidas.add(cartela));
         (pedido.cartelasDevolvidas || []).forEach(cartela => cartelasDevolvidas.add(cartela));
@@ -414,7 +414,7 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
-      pedidosDoBingo.forEach(pedido => {
+      (pedidosDoBingo || []).forEach(pedido => {
         (pedido.cartelasRetiradas || []).forEach(cartela => cartelasOcupadas.add(cartela));
         (pedido.cartelasVendidas || []).forEach(cartela => cartelasVendidas.add(cartela));
         (pedido.cartelasDevolvidas || []).forEach(cartela => cartelasDevolvidas.add(cartela));
@@ -471,7 +471,7 @@ export const useCartelasDisponiveis = (bingoId: string) => {
       const cartelasVendidas = new Set<number>();
       const cartelasDevolvidas = new Set<number>();
       
-      pedidosDoBingo.forEach(pedido => {
+      (pedidosDoBingo || []).forEach(pedido => {
         (pedido.cartelasRetiradas || []).forEach(cartela => cartelasOcupadas.add(cartela));
         (pedido.cartelasVendidas || []).forEach(cartela => cartelasVendidas.add(cartela));
         (pedido.cartelasDevolvidas || []).forEach(cartela => cartelasDevolvidas.add(cartela));
