@@ -6,6 +6,7 @@ import { EditPedidoForm } from '@/components/forms/EditPedidoForm';
 import { RetirarCartelasForm } from '@/components/forms/RetirarCartelasForm';
 import { VenderCartelasForm } from '@/components/forms/VenderCartelasForm';
 import { DevolverCartelasForm } from '@/components/forms/DevolverCartelasForm';
+import { DeletePedidoForm } from '@/components/forms/DeletePedidoForm';
 import { PageLayout } from '@/components/Layout/PageLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePedidos, useVendedores, useBingos } from '@/hooks/useQueryData';
@@ -140,6 +141,7 @@ export default function Pedidos() {
                       <RetirarCartelasForm pedido={pedido} />
                       <VenderCartelasForm pedido={pedido} />
                       <DevolverCartelasForm pedido={pedido} />
+                      <DeletePedidoForm pedido={pedido} />
                     </div>
                   </CardContent>
                 </Card>
