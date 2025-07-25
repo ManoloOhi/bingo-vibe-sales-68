@@ -26,9 +26,10 @@ const getUltimasAtividades = (pedidos: any[], vendedores: { [key: string]: any }
       });
 
       // Atividades de vendas (se houver)
-      if (pedido.cartelasVendidas.length > 0) {
+      const cartelasVendidas = pedido.cartelasVendidas || [];
+      if (cartelasVendidas.length > 0) {
         atividades.push({
-          texto: `${vendedor.nome} vendeu ${pedido.cartelasVendidas.length} cartelas`,
+          texto: `${vendedor.nome} vendeu ${cartelasVendidas.length} cartelas`,
           tempo: formatDistanceToNow(new Date(pedido.updatedAt), { addSuffix: true, locale: ptBR }),
           data: new Date(pedido.updatedAt)
         });
