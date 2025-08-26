@@ -206,7 +206,17 @@ export default function Relatorios() {
     <PageLayout title="Relatórios" subtitle="Análise de vendas">
       <div className="space-y-4">
         <div className="flex justify-end">
-          <DownloadReportButton />
+          <DownloadReportButton 
+            stats={stats}
+            vendedoresStats={vendedoresStats}
+            bingosDetalhes={bingosDetalhes}
+            vendasDetalhes={vendasDetalhes}
+            cartelasVendidasDetalhes={cartelasVendidasDetalhes}
+            vendedoresDetalhes={vendedoresDetalhes}
+            vendedores={vendedores}
+            pedidos={pedidos}
+            bingos={bingos}
+          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Dialog>

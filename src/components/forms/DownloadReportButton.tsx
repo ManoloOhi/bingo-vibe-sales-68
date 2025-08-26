@@ -1,11 +1,57 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
-import { ApiService } from '@/services/apiService';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 
-export function DownloadReportButton() {
+interface DownloadReportButtonProps {
+  stats: {
+    totalRecebido: number;
+    valorEsperado: number;
+    cartelasVendidas: number;
+    vendedoresAtivos: number;
+    taxaConversao: number;
+  };
+  vendedoresStats: Array<{
+    nome: string;
+    vendas: number;
+    percentual: number;
+  }>;
+  bingosDetalhes: Array<{
+    nome: string;
+    valorEsperado: number;
+    quantidadeCartelas: number;
+  }>;
+  vendasDetalhes: Array<{
+    nome: string;
+    totalRecebido: number;
+    cartelasVendidas: number;
+  }>;
+  cartelasVendidasDetalhes: Array<{
+    nome: string;
+    cartelasVendidas: number;
+  }>;
+  vendedoresDetalhes: Array<{
+    nome: string;
+    bingos: string[];
+    status: string;
+  }>;
+  vendedores: any[];
+  pedidos: any[];
+  bingos: any[];
+}
+
+export function DownloadReportButton({ 
+  stats,
+  vendedoresStats,
+  bingosDetalhes,
+  vendasDetalhes,
+  cartelasVendidasDetalhes,
+  vendedoresDetalhes,
+  vendedores,
+  pedidos,
+  bingos
+}: DownloadReportButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const formatCurrency = (value: string | number) => {
@@ -40,7 +86,7 @@ export function DownloadReportButton() {
       .trim();
   };
 
-  const generatePDF = (data: any) => {
+  const generatePDF = () => {
     const pdf = new jsPDF();
     let yPosition = 20;
     const pageHeight = pdf.internal.pageSize.height;
@@ -62,7 +108,13 @@ export function DownloadReportButton() {
 
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Gerado em: ${data.dataGeracaoLocal}`, 20, yPosition);
+    pdf.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}`, 20, yPosition);
     yPosition += 15;
 
     // Resumo Geral
@@ -76,34 +128,36 @@ export function DownloadReportButton() {
     pdf.setFont('helvetica', 'normal');
     
     // Sistema
-    pdf.text(`Total de Usuários: ${data.resumoGeral.sistema.totalUsuarios}`, 20, yPosition);
+    pdf.text(`Total de Bingos: ${bingos.length}`, 20, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Total de Bingos: ${data.resumoGeral.sistema.totalBingos}`, 20, yPosition);
+    pdf.text(`Total de Vendedores: ${vendedores.length}`, 20, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Bingos Ativos: ${data.resumoGeral.sistema.bingosAtivos}`, 20, yPosition);
+    pdf.text(`Vendedores Ativos: ${stats.vendedoresAtivos}`, 20, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Total de Vendedores: ${data.resumoGeral.sistema.totalVendedores}`, 20, yPosition);
-    yPosition += lineHeight;
-    pdf.text(`Vendedores Ativos: ${data.resumoGeral.sistema.vendedoresAtivos}`, 20, yPosition);
-    yPosition += lineHeight;
-    pdf.text(`Total de Pedidos: ${data.resumoGeral.sistema.totalPedidos}`, 20, yPosition);
+    pdf.text(`Total de Pedidos: ${pedidos.length}`, 20, yPosition);
     yPosition += 10;
 
     // Cartelas
+    const totalCartelas = bingos.reduce((total, bingo) => total + bingo.quantidadeCartelas, 0);
+    const cartelasPendentes = pedidos.reduce((total, p) => total + p.cartelasPendentes.length, 0);
+    const cartelasRetiradas = pedidos.reduce((total, p) => total + p.cartelasRetiradas.length, 0);
+    const cartelasDisponiveis = totalCartelas - cartelasPendentes - stats.cartelasVendidas;
+    const percentualVendido = totalCartelas > 0 ? (stats.cartelasVendidas / totalCartelas) * 100 : 0;
+
     checkPageBreak(6);
     pdf.setFont('helvetica', 'bold');
     pdf.text('CARTELAS:', 20, yPosition);
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Total: ${data.resumoGeral.cartelas.totalCartelas}`, 30, yPosition);
+    pdf.text(`Total: ${totalCartelas}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Disponíveis: ${data.resumoGeral.cartelas.cartelasDisponiveis}`, 30, yPosition);
+    pdf.text(`Disponíveis: ${cartelasDisponiveis}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Pendentes: ${data.resumoGeral.cartelas.cartelasPendentes}`, 30, yPosition);
+    pdf.text(`Pendentes: ${cartelasPendentes}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Vendidas: ${data.resumoGeral.cartelas.cartelasVendidas}`, 30, yPosition);
+    pdf.text(`Vendidas: ${stats.cartelasVendidas}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Percentual Vendido: ${data.resumoGeral.cartelas.percentualVendido}%`, 30, yPosition);
+    pdf.text(`Percentual Vendido: ${percentualVendido.toFixed(1)}%`, 30, yPosition);
     yPosition += 10;
 
     // Financeiro
@@ -112,29 +166,44 @@ export function DownloadReportButton() {
     pdf.text('FINANCEIRO:', 20, yPosition);
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Valor Total do Estoque: ${formatCurrency(data.resumoGeral.financeiro.valorTotalEstoque)}`, 30, yPosition);
+    pdf.text(`Valor Total do Estoque: ${formatCurrency(stats.valorEsperado)}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Valor Total Pendente: ${formatCurrency(data.resumoGeral.financeiro.valorTotalPendente)}`, 30, yPosition);
+    const valorPendente = pedidos.reduce((total, p) => {
+      const bingo = bingos.find(b => b.id === p.bingoId);
+      return total + (p.cartelasPendentes.length * (parseFloat(bingo?.valorCartela) || 0));
+    }, 0);
+    pdf.text(`Valor Total Pendente: ${formatCurrency(valorPendente)}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Valor Total Arrecadado: ${formatCurrency(data.resumoGeral.financeiro.valorTotalArrecadado)}`, 30, yPosition);
+    pdf.text(`Valor Total Arrecadado: ${formatCurrency(stats.totalRecebido)}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Valor Total Projetado: ${formatCurrency(data.resumoGeral.financeiro.valorTotalProjetado)}`, 30, yPosition);
+    pdf.text(`Valor Total Projetado: ${formatCurrency(stats.valorEsperado)}`, 30, yPosition);
     yPosition += 15;
 
     // Bingos
-    if (data.bingos && data.bingos.length > 0) {
+    if (bingos && bingos.length > 0) {
       checkPageBreak(3);
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       pdf.text('DETALHES DOS BINGOS', 20, yPosition);
       yPosition += 10;
 
-      data.bingos.forEach((bingo: any, index: number) => {
+      bingos.forEach((bingo: any, index: number) => {
         checkPageBreak(8);
         pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
         pdf.text(`${index + 1}. ${bingo.nome}`, 20, yPosition);
         yPosition += lineHeight;
+        
+        const cartelasVendidasBingo = pedidos
+          .filter(p => p.bingoId === bingo.id)
+          .reduce((total, p) => total + p.cartelasVendidas.length, 0);
+        
+        const cartelasPendentesBingo = pedidos
+          .filter(p => p.bingoId === bingo.id)
+          .reduce((total, p) => total + p.cartelasPendentes.length, 0);
+        
+        const cartelasDisponiveisBingo = bingo.quantidadeCartelas - cartelasPendentesBingo - cartelasVendidasBingo;
+        const valorArrecadado = cartelasVendidasBingo * (parseFloat(bingo.valorCartela) || 0);
         
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
@@ -146,23 +215,35 @@ export function DownloadReportButton() {
         yPosition += lineHeight;
         pdf.text(`Data do Bingo: ${formatDate(bingo.dataBingo)}`, 30, yPosition);
         yPosition += lineHeight;
-        pdf.text(`Disponível: ${bingo.estoque.disponivel} | Pendente: ${bingo.estoque.pendente} | Vendido: ${bingo.estoque.vendido}`, 30, yPosition);
+        pdf.text(`Disponível: ${cartelasDisponiveisBingo} | Pendente: ${cartelasPendentesBingo} | Vendido: ${cartelasVendidasBingo}`, 30, yPosition);
         yPosition += lineHeight;
-        pdf.text(`Valor Arrecadado: ${formatCurrency(bingo.valores.valorArrecadado)}`, 30, yPosition);
+        pdf.text(`Valor Arrecadado: ${formatCurrency(valorArrecadado)}`, 30, yPosition);
         yPosition += 10;
       });
     }
 
     // Vendedores
-    if (data.vendedores && data.vendedores.length > 0) {
+    if (vendedores && vendedores.length > 0) {
       checkPageBreak(3);
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       pdf.text('PERFORMANCE DOS VENDEDORES', 20, yPosition);
       yPosition += 10;
 
-      data.vendedores.forEach((vendedor: any, index: number) => {
+      vendedores.forEach((vendedor: any, index: number) => {
         checkPageBreak(8);
+        const vendedorStats = vendedoresStats.find(v => v.nome === vendedor.nome);
+        const pedidosVendedor = pedidos.filter(p => p.vendedorId === vendedor.id);
+        const totalPedidos = pedidosVendedor.length;
+        const cartelasVendidas = vendedorStats?.vendas || 0;
+        const cartelasRetiradas = pedidosVendedor.reduce((total, p) => total + p.cartelasRetiradas.length, 0);
+        const taxaConversao = cartelasRetiradas > 0 ? (cartelasVendidas / cartelasRetiradas) * 100 : 0;
+        
+        const valorTotalVendido = pedidosVendedor.reduce((total, pedido) => {
+          const bingo = bingos.find(b => b.id === pedido.bingoId);
+          return total + (pedido.cartelasVendidas.length * (parseFloat(bingo?.valorCartela) || 0));
+        }, 0);
+        
         pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
         pdf.text(`${index + 1}. ${vendedor.nome}`, 20, yPosition);
@@ -174,57 +255,60 @@ export function DownloadReportButton() {
         yPosition += lineHeight;
         pdf.text(`WhatsApp: ${vendedor.whatsapp}`, 30, yPosition);
         yPosition += lineHeight;
-        pdf.text(`Total de Pedidos: ${vendedor.performance.totalPedidos}`, 30, yPosition);
+        pdf.text(`Total de Pedidos: ${totalPedidos}`, 30, yPosition);
         yPosition += lineHeight;
-        pdf.text(`Cartelas Vendidas: ${vendedor.performance.cartelasVendidas}`, 30, yPosition);
+        pdf.text(`Cartelas Vendidas: ${cartelasVendidas}`, 30, yPosition);
         yPosition += lineHeight;
-        pdf.text(`Valor Total Vendido: ${formatCurrency(vendedor.performance.valorTotalVendido)}`, 30, yPosition);
+        pdf.text(`Valor Total Vendido: ${formatCurrency(valorTotalVendido)}`, 30, yPosition);
         yPosition += lineHeight;
-        pdf.text(`Taxa de Conversão: ${vendedor.performance.taxaConversao}%`, 30, yPosition);
+        pdf.text(`Taxa de Conversão: ${taxaConversao.toFixed(1)}%`, 30, yPosition);
         yPosition += 10;
       });
     }
 
     // Métricas
-    if (data.metricas) {
-      checkPageBreak(8);
+    checkPageBreak(8);
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('MÉTRICAS E INDICADORES', 20, yPosition);
+    yPosition += 10;
+
+    const mediaCartelasPorVendedor = vendedores.length > 0 ? stats.cartelasVendidas / vendedores.length : 0;
+    const vendedorMaisEficiente = vendedoresStats.length > 0 ? vendedoresStats[0].nome : 'N/A';
+    const bingoMaisVendido = vendasDetalhes.length > 0 
+      ? vendasDetalhes.reduce((prev, current) => (prev.cartelasVendidas > current.cartelasVendidas) ? prev : current).nome 
+      : 'N/A';
+    const valorMedioCartela = stats.cartelasVendidas > 0 ? stats.totalRecebido / stats.cartelasVendidas : 0;
+    const percentualArrecadado = stats.valorEsperado > 0 ? (stats.totalRecebido / stats.valorEsperado) * 100 : 0;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Taxa de Conversão Geral: ${stats.taxaConversao}%`, 20, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Média de Cartelas por Vendedor: ${mediaCartelasPorVendedor.toFixed(1)}`, 20, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Vendedor Mais Eficiente: ${vendedorMaisEficiente}`, 20, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Bingo Mais Vendido: ${bingoMaisVendido}`, 20, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Valor Médio da Cartela: ${formatCurrency(valorMedioCartela)}`, 20, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Percentual Arrecadado: ${percentualArrecadado.toFixed(1)}%`, 20, yPosition);
+    yPosition += 10;
+
+    // Resumo de Vendas por Vendedor
+    if (vendedoresStats.length > 0) {
+      checkPageBreak(vendedoresStats.length + 3);
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('MÉTRICAS E INDICADORES', 20, yPosition);
-      yPosition += 10;
-
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Taxa de Conversão Geral: ${data.metricas.eficiencia.taxaConversaoGeral}%`, 20, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Média de Cartelas por Vendedor: ${data.metricas.eficiencia.mediaCartelasPorVendedor}`, 20, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Vendedor Mais Eficiente: ${data.metricas.eficiencia.vendedorMaisEficiente}`, 20, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Bingo Mais Vendido: ${data.metricas.eficiencia.bingoMaisVendido}`, 20, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Valor Médio da Cartela: ${formatCurrency(data.metricas.financeiro.valorMedioCartela)}`, 20, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Percentual Arrecadado: ${data.metricas.financeiro.percentualArrecadado}%`, 20, yPosition);
-      yPosition += 10;
-    }
-
-    // Alertas
-    if (data.observacoes && data.observacoes.alertas && data.observacoes.alertas.length > 0) {
-      checkPageBreak(data.observacoes.alertas.length + 3);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('ALERTAS E OBSERVACOES', 20, yPosition);
+      pdf.text('RESUMO DE VENDAS POR VENDEDOR', 20, yPosition);
       yPosition += 10;
 
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      data.observacoes.alertas.forEach((alerta: string) => {
-        const cleanedAlert = cleanText(alerta);
-        if (cleanedAlert.length > 0) {
-          pdf.text(`• ${cleanedAlert}`, 20, yPosition);
-          yPosition += lineHeight;
-        }
+      vendedoresStats.forEach((vendedor) => {
+        pdf.text(`• ${vendedor.nome}: ${vendedor.vendas} cartelas (${vendedor.percentual.toFixed(1)}%)`, 20, yPosition);
+        yPosition += lineHeight;
       });
     }
 
@@ -235,17 +319,7 @@ export function DownloadReportButton() {
     try {
       setIsDownloading(true);
       
-      // Usar dados do dashboard que mantém consistência com frontend
-      const data = await ApiService.getDashboardStats();
-      const relatorioCompleto = await ApiService.getRelatorioCompleto();
-      
-      // Combinar dados para manter valores consistentes
-      const combinedData = {
-        ...relatorioCompleto,
-        resumoGeral: data
-      };
-      
-      const pdf = generatePDF(combinedData);
+      const pdf = generatePDF();
       
       const fileName = `relatorio-completo-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
