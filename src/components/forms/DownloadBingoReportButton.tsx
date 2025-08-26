@@ -269,9 +269,8 @@ export function DownloadBingoReportButton({ bingoId, bingoNome }: DownloadBingoR
     setIsDownloading(true);
     try {
       console.log('Fazendo download do relatório do bingo:', bingoId);
-      // Usar endpoint do dashboard para consistência
-      const response = await fetch(`/api/dashboard/bingo/${bingoId}/relatorio`);
-      const data = await response.json();
+      // Usar ApiService que agora aponta para o endpoint correto
+      const data = await ApiService.getBingoRelatorio(bingoId);
       console.log('Dados recebidos:', data);
 
       const pdf = generateBingoPDF(data);

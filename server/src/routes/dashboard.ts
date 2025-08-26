@@ -106,43 +106,122 @@ dashboardRoutes.get('/stats', async (req, res) => {
 // GET /api/dashboard/relatorio-completo - Relatório completo
 dashboardRoutes.get('/relatorio-completo', async (req, res) => {
   try {
-    // Buscar dados das estatísticas
-    const statsResponse = await fetch(`${req.protocol}://${req.get('host')}/api/dashboard/stats`);
-    const stats = await statsResponse.json();
-
-    // Buscar dados adicionais para o relatório
+    // Buscar dados das estatísticas diretamente (sem fetch interno)
     const [bingosData, vendedoresData, pedidosData] = await Promise.all([
       db.select().from(bingos).where(eq(bingos.ativo, true)),
       db.select().from(vendedores).where(eq(vendedores.ativo, true)),
       db.select().from(pedidos)
     ]);
 
-    // Criar relatório detalhado de bingos
+    // Usar a mesma lógica de cálculo do endpoint stats
+    let totalRecebido = 0;
+    let valorEsperado = 0;
+    let cartelasVendidas = 0;
+    let vendedoresAtivos = 0;
+
+    // Criar mapa de vendedores para lookup rápido
+    const vendedoresMap = vendedoresData.reduce((map, vendedor) => {
+      map[vendedor.id] = vendedor;
+      return map;
+    }, {} as Record<string, any>);
+
+    // Criar mapa de bingos para lookup rápido
+    const bingosMap = bingosData.reduce((map, bingo) => {
+      map[bingo.id] = bingo;
+      return map;
+    }, {} as Record<string, any>);
+
+    // Contar vendedores ativos (com pedidos)
+    const vendedoresComPedidos = new Set();
+
+    // Calcular valores baseado nos pedidos
+    pedidosData.forEach(pedido => {
+      const bingo = bingosMap[pedido.bingoId];
+      const vendedor = vendedoresMap[pedido.vendedorId];
+      
+      if (!bingo || !vendedor) return;
+
+      // Adicionar vendedor à lista de ativos
+      vendedoresComPedidos.add(pedido.vendedorId);
+
+      // Calcular cartelas vendidas
+      const cartelasVendidasPedido = (pedido.cartelasVendidas || []).length;
+      cartelasVendidas += cartelasVendidasPedido;
+
+      // Calcular valor recebido (apenas cartelas vendidas)
+      totalRecebido += cartelasVendidasPedido * parseFloat(bingo.valorCartela);
+
+      // Calcular valor esperado (total de cartelas do pedido)
+      valorEsperado += parseInt(pedido.quantidadeCartelas) * parseFloat(bingo.valorCartela);
+    });
+
+    vendedoresAtivos = vendedoresComPedidos.size;
+
+    // Calcular taxa de conversão
+    const taxaConversao = valorEsperado > 0 ? (totalRecebido / valorEsperado) * 100 : 0;
+
+    // Calcular vendas por vendedor
+    const vendasPorVendedor = Array.from(vendedoresComPedidos).map(vendedorId => {
+      const vendedor = vendedoresMap[vendedorId];
+      const pedidosVendedor = pedidosData.filter(p => p.vendedorId === vendedorId);
+      
+      let valorVendedor = 0;
+      let cartelasVendedor = 0;
+
+      pedidosVendedor.forEach(pedido => {
+        const bingo = bingosMap[pedido.bingoId];
+        if (!bingo) return;
+
+        const cartelasVendidasPedido = (pedido.cartelasVendidas || []).length;
+        cartelasVendedor += cartelasVendidasPedido;
+        valorVendedor += cartelasVendidasPedido * parseFloat(bingo.valorCartela);
+      });
+
+      const percentual = totalRecebido > 0 ? (valorVendedor / totalRecebido) * 100 : 0;
+
+      return {
+        vendedor: vendedor.nome,
+        valor: valorVendedor,
+        cartelas: cartelasVendedor,
+        percentual
+      };
+    }).sort((a, b) => b.valor - a.valor);
+
+    const stats = {
+      totalRecebido,
+      valorEsperado,
+      cartelasVendidas,
+      vendedoresAtivos,
+      taxaConversao,
+      vendasPorVendedor
+    };
+
+    // Criar relatório detalhado de bingos usando os dados já carregados
     const bingosRelatorio = bingosData.map(bingo => {
       const pedidosBingo = pedidosData.filter(p => p.bingoId === bingo.id);
       
-      let cartelasVendidas = 0;
-      let valorArrecadado = 0;
-      let cartelasPendentes = 0;
+      let cartelasVendidasBingo = 0;
+      let valorArrecadadoBingo = 0;
+      let cartelasPendentesBingo = 0;
 
       pedidosBingo.forEach(pedido => {
         const vendidas = (pedido.cartelasVendidas || []).length;
         const pendentes = (pedido.cartelasPendentes || []).length;
         
-        cartelasVendidas += vendidas;
-        cartelasPendentes += pendentes;
-        valorArrecadado += vendidas * parseFloat(bingo.valorCartela);
+        cartelasVendidasBingo += vendidas;
+        cartelasPendentesBingo += pendentes;
+        valorArrecadadoBingo += vendidas * parseFloat(bingo.valorCartela);
       });
 
       const totalCartelas = parseInt(bingo.quantidadeCartelas);
-      const cartelasDisponiveis = totalCartelas - cartelasVendidas - cartelasPendentes;
+      const cartelasDisponiveisBingo = totalCartelas - cartelasVendidasBingo - cartelasPendentesBingo;
 
       return {
         ...bingo,
-        cartelasVendidas,
-        cartelasPendentes,
-        cartelasDisponiveis,
-        valorArrecadado,
+        cartelasVendidas: cartelasVendidasBingo,
+        cartelasPendentes: cartelasPendentesBingo,
+        cartelasDisponiveis: cartelasDisponiveisBingo,
+        valorArrecadado: valorArrecadadoBingo,
         valorEsperado: totalCartelas * parseFloat(bingo.valorCartela)
       };
     });

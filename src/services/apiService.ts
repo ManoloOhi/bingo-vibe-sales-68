@@ -151,7 +151,7 @@ class ApiService {
   }
 
   static async getBingoRelatorio(id: string) {
-    return this.request(`/relatorio/bingo/${id}`);
+    return this.request(`/dashboard/bingo/${id}/relatorio`);
   }
 
   static async getBingoCartelasDisponiveis(id: string) {
@@ -190,7 +190,7 @@ class ApiService {
   // 📊 RELATÓRIO COMPLETO
   // ========================================
   static async getRelatorioCompleto() {
-    return this.request('/relatorio/completo');
+    return this.request('/dashboard/relatorio-completo');
   }
 }
 
