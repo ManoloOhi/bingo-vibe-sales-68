@@ -235,8 +235,17 @@ export function DownloadReportButton() {
     try {
       setIsDownloading(true);
       
-      const data = await ApiService.getRelatorioCompleto();
-      const pdf = generatePDF(data);
+      // Usar dados do dashboard que mantém consistência com frontend
+      const data = await ApiService.getDashboardStats();
+      const relatorioCompleto = await ApiService.getRelatorioCompleto();
+      
+      // Combinar dados para manter valores consistentes
+      const combinedData = {
+        ...relatorioCompleto,
+        resumoGeral: data
+      };
+      
+      const pdf = generatePDF(combinedData);
       
       const fileName = `relatorio-completo-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
